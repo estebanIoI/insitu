@@ -61,6 +61,8 @@ services:
     build:
       context: ./uni-eval-api
       dockerfile: Dockerfile
+      args:
+        CACHEBUST: ${CACHEBUST:-1}
     restart: unless-stopped
     environment:
       NODE_ENV: production
