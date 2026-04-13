@@ -19,6 +19,7 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./uni-eval-api/sql/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s

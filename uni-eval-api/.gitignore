@@ -41,5 +41,8 @@ prisma/**/.prisma/
 scripts/swagger.generated.json
 scripts/generated/
 
-# SQL files
+# SQL files — permitir init scripts para MySQL, excluir el resto
 sql/
+!sql/
+!sql/init/
+!sql/init/*.sql
