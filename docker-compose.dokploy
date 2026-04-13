@@ -1,8 +1,6 @@
 # =============================================================================
-# docker-compose.dokploy.yml
-# Orquestación completa del proyecto para despliegue en Dokploy
-# =============================================================================
-# Configurar todas las variables en: Dokploy → Project → Environment Variables
+# docker-compose.dokploy
+# Orquestación completa del proyecto para despliegue en Dokploy (Swarm Stack)
 # =============================================================================
 
 services:
@@ -31,7 +29,7 @@ services:
       - eval-network
 
   # ---------------------------------------------------------------------------
-  # OLLAMA (LLM local — omitir si se usa OpenAI/Gemini)
+  # OLLAMA (LLM local)
   # ---------------------------------------------------------------------------
   ollama:
     image: ollama/ollama:latest
@@ -50,9 +48,6 @@ services:
   ollama-pull:
     image: ollama/ollama:latest
     restart: "no"
-    depends_on:
-      ollama:
-        condition: service_healthy
     environment:
       OLLAMA_HOST: http://ollama:11434
     entrypoint: ["sh", "-c", "ollama pull ${LLM_MODEL}"]
@@ -67,42 +62,37 @@ services:
       context: ./uni-eval-api
       dockerfile: Dockerfile
     restart: unless-stopped
-    depends_on:
-      mysql:
-        condition: service_healthy
-      ollama:
-        condition: service_healthy
-      ollama-pull:
-        condition: service_completed_successfully
     environment:
       NODE_ENV: production
       PORT: 5000
 
-      # --- Bases de datos ---
-      # Local (contenedor MySQL arriba)
+      # DB local (contenedor MySQL)
       DATABASE_URL: mysql://root:${DB_ROOT_PASSWORD}@mysql:3306/${DB_NAME}
-      # Bases de datos externas (sigedin)
+      DATABASE_URL_METRICAS: mysql://root:${DB_ROOT_PASSWORD}@mysql:3306/app_metricas
+
+      # DBs externas sigedin
       DATABASE_URL_AUTH: ${DATABASE_URL_AUTH}
       DATABASE_URL_USER: ${DATABASE_URL_USER}
-      DATABASE_URL_METRICAS: ${DATABASE_URL_METRICAS}
 
-      # --- Autenticación ---
+      # Auth
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
 
-      # --- CORS ---
+      # CORS
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
 
-      # --- Swagger / URLs internas ---
+      # URLs
       API_BASE_URL: ${API_BASE_URL}
       API_SWAGGER_URL: ${API_BASE_URL}
 
-      # --- IA (Ollama) ---
+      # IA
       OLLAMA_HOST: http://ollama:11434
       LLM_MODEL: ${LLM_MODEL}
 
-      # --- Debug ---
+      # Debug
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
       VALIDATION_DEBUG: ${VALIDATION_DEBUG:-false}
+      SKIP_DB_CHECK: ${SKIP_DB_CHECK:-false}
     ports:
       - "5000:5000"
     networks:
@@ -110,8 +100,7 @@ services:
 
   # ---------------------------------------------------------------------------
   # FRONTEND (uni-eval-front — Next.js standalone)
-  # IMPORTANTE: NEXT_PUBLIC_* se embeben en el bundle durante el build.
-  # Cambiar NEXT_PUBLIC_API_URL requiere reconstruir la imagen.
+  # NEXT_PUBLIC_* se embeben en el build — requiere rebuild si cambian
   # ---------------------------------------------------------------------------
   frontend:
     build:
@@ -123,8 +112,6 @@ services:
         NEXT_PUBLIC_RETRY_ATTEMPTS: ${NEXT_PUBLIC_RETRY_ATTEMPTS:-3}
         NEXT_PUBLIC_RETRY_DELAY: ${NEXT_PUBLIC_RETRY_DELAY:-1000}
     restart: unless-stopped
-    depends_on:
-      - backend
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -145,8 +132,9 @@ volumes:
   ollama_data:
 
 # =============================================================================
-# RED
+# RED — overlay requerido para Docker Swarm Stack (Dokploy)
 # =============================================================================
 networks:
   eval-network:
-    driver: bridge
+    driver: overlay
+    attachable: true
