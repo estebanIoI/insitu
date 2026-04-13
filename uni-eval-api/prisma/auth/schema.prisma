@@ -1,0 +1,23 @@
+// =============================================================================
+// DB AUTH — sigedin_seguridad (solo lectura, NO migrations)
+// Schema mantenido manualmente.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/prisma/generated/auth"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL_AUTH")
+}
+
+model datalogin {
+  user_id       Int     @id @default(autoincrement())
+  user_username String? @db.VarChar(100)
+  user_password String? @db.VarChar(255)
+  user_estado   Int?    @default(1)
+  user_nombre   String? @db.VarChar(255)
+  user_email    String? @db.VarChar(255)
+}

@@ -33,10 +33,9 @@ Thumbs.db
 tmp/
 temp/
 
-# Prisma auto-generated clients
-src/prisma/**/
-!src/prisma/client.js
-prisma/
+# Prisma — solo excluir código generado, NO los schemas ni el clients.js
+src/prisma/generated/
+prisma/**/.prisma/
 
 # Swagger auto-generated files
 scripts/swagger.generated.json
