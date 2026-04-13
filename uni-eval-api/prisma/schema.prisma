@@ -1,0 +1,15 @@
+// =============================================================================
+// DB LOCAL — Base de datos principal de la app
+// Los modelos se generan en runtime via: prisma db pull --schema=prisma/schema.prisma
+// El output apunta a src/prisma/generated/local/
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/prisma/generated/local"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}

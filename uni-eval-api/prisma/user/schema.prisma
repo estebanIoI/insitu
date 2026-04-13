@@ -1,0 +1,31 @@
+// =============================================================================
+// DB USER — sigedin_ies (solo lectura, NO migrations)
+// Vista académica de estudiantes/docentes.
+// Schema mantenido manualmente.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/prisma/generated/user"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL_USER")
+}
+
+/// Vista académica — tabla de inscripciones académicas
+model vista_academica_insitus {
+  ID_ESTUDIANTE String? @db.VarChar(50)
+  ID_DOCENTE    String? @db.VarChar(50)
+  PERIODO       String? @db.VarChar(20)
+  NOMBRE_SEDE   String? @db.VarChar(255)
+  NOM_PROGRAMA  String? @db.VarChar(255)
+  SEMESTRE      String? @db.VarChar(10)
+  GRUPO         String? @db.VarChar(50)
+  NOM_MATERIA   String? @db.VarChar(255)
+  // Clave compuesta pragmática — ajustar si hay columna PK real en la vista
+  row_id        Int     @id @default(autoincrement()) @map("row_id")
+
+  @@map("vista_academica_insitus")
+}
