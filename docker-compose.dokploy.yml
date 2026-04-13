@@ -1,6 +1,6 @@
 # =============================================================================
-# docker-compose.dokploy
-# Orquestación completa del proyecto para despliegue en Dokploy (Swarm Stack)
+# docker-compose.dokploy.yml
+# Orquestación completa del proyecto para despliegue en Dokploy (Compose mode)
 # =============================================================================
 
 services:
@@ -132,9 +132,8 @@ volumes:
   ollama_data:
 
 # =============================================================================
-# RED — overlay requerido para Docker Swarm Stack (Dokploy)
+# RED
 # =============================================================================
 networks:
   eval-network:
-    driver: overlay
-    attachable: true
+    driver: bridge
