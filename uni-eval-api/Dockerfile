@@ -26,6 +26,9 @@ COPY package.json package-lock.json ./
 # Instalar dependencias
 RUN npm ci
 
+# ARG para romper el cache de Docker cuando sea necesario
+ARG CACHEBUST=1
+
 # Copiar todo el código fuente
 COPY . .
 

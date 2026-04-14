@@ -14,18 +14,20 @@ datasource db {
   url      = env("DATABASE_URL_USER")
 }
 
-/// Vista académica — tabla de inscripciones académicas
+/// Vista académica — tabla de inscripciones académicas (solo lectura, sin migrations)
+/// Solo incluir columnas confirmadas en la vista real de la DB.
+/// Queries con columnas extra (ASIGNATURA, nombres) usan $queryRawUnsafe en metric.repository.js
 model vista_academica_insitus {
-  ID_ESTUDIANTE String? @db.VarChar(50)
-  ID_DOCENTE    String? @db.VarChar(50)
-  PERIODO       String? @db.VarChar(20)
-  NOMBRE_SEDE   String? @db.VarChar(255)
-  NOM_PROGRAMA  String? @db.VarChar(255)
-  SEMESTRE      String? @db.VarChar(10)
-  GRUPO         String? @db.VarChar(50)
-  NOM_MATERIA   String? @db.VarChar(255)
-  // Clave compuesta pragmática — ajustar si hay columna PK real en la vista
-  row_id        Int     @id @default(autoincrement()) @map("row_id")
+  ID_ESTUDIANTE  String  @db.VarChar(50)
+  ID_DOCENTE     String  @db.VarChar(50)
+  DOCENTE        String? @db.VarChar(255)
+  PERIODO        String? @db.VarChar(20)
+  NOMBRE_SEDE    String? @db.VarChar(255)
+  NOM_PROGRAMA   String? @db.VarChar(255)
+  SEMESTRE       String? @db.VarChar(10)
+  GRUPO          String  @db.VarChar(50)
+  COD_ASIGNATURA Int
 
+  @@id([ID_ESTUDIANTE, ID_DOCENTE, COD_ASIGNATURA, GRUPO])
   @@map("vista_academica_insitus")
 }

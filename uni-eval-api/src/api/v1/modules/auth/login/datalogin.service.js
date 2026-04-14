@@ -49,6 +49,7 @@ class DataloginService {
 
     return {
       ...user,
+      user_name: user.user_name ?? user.user_username,
       rolesAuth,
       rolesAuthIds,
       rolesApp,
@@ -182,6 +183,7 @@ class DataloginService {
       refreshExpiresAt: exp,
       user: {
         ...safeUser,
+        user_name: safeUser.user_name ?? safeUser.user_username,
         rolesAuth,
         rolesAuthIds,
         rolesApp,

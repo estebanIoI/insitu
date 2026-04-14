@@ -19,6 +19,7 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./uni-eval-api/sql/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -55,13 +56,58 @@ services:
       - eval-network
 
   # ---------------------------------------------------------------------------
+  # DB INIT — importa app.sql si la BD está vacía (funciona con volumen previo)
+  # Corre una sola vez y sale. El backend espera a que termine.
+  # ---------------------------------------------------------------------------
+  db-init:
+    image: mysql:8
+    restart: "no"
+    environment:
+      MYSQL_PWD: ${DB_ROOT_PASSWORD}
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo '⏳ Esperando MySQL...'
+        until mysqladmin ping -h mysql -uroot --silent 2>/dev/null; do sleep 2; done
+        echo '✅ MySQL listo'
+        TABLES=$$(mysql -h mysql -uroot -e \
+          "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='app';" \
+          -sN 2>/dev/null || echo 0)
+        if [ "$$TABLES" = "0" ] || [ -z "$$TABLES" ]; then
+          echo '📥 BD vacía — importando esquema...'
+          mysql -h mysql -uroot < /init/app.sql && echo '✅ Esquema importado.'
+        else
+          echo "✅ BD ya tiene $$TABLES tablas — omitiendo init."
+        fi
+    volumes:
+      - ./uni-eval-api/sql/init:/init:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - eval-network
+
+  # ---------------------------------------------------------------------------
   # BACKEND (uni-eval-api — Express + Prisma)
   # ---------------------------------------------------------------------------
   backend:
     build:
       context: ./uni-eval-api
       dockerfile: Dockerfile
+      args:
+        CACHEBUST: ${CACHEBUST:-1}
     restart: unless-stopped
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.insitu-backend.rule=Host(`api.eduportal.cloud`)"
+      - "traefik.http.routers.insitu-backend.entrypoints=websecure"
+      - "traefik.http.routers.insitu-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.insitu-backend.loadbalancer.server.port=5000"
+      - "traefik.docker.network=dokploy-network"
     environment:
       NODE_ENV: production
       PORT: 5000
@@ -97,6 +143,7 @@ services:
       - "5000:5000"
     networks:
       - eval-network
+      - dokploy-network
 
   # ---------------------------------------------------------------------------
   # FRONTEND (uni-eval-front — Next.js standalone)
@@ -112,6 +159,13 @@ services:
         NEXT_PUBLIC_RETRY_ATTEMPTS: ${NEXT_PUBLIC_RETRY_ATTEMPTS:-3}
         NEXT_PUBLIC_RETRY_DELAY: ${NEXT_PUBLIC_RETRY_DELAY:-1000}
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.insitu-frontend.rule=Host(`eduportal.cloud`) || Host(`www.eduportal.cloud`)"
+      - "traefik.http.routers.insitu-frontend.entrypoints=websecure"
+      - "traefik.http.routers.insitu-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.insitu-frontend.loadbalancer.server.port=3000"
+      - "traefik.docker.network=dokploy-network"
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -120,9 +174,10 @@ services:
       NEXT_PUBLIC_RETRY_ATTEMPTS: ${NEXT_PUBLIC_RETRY_ATTEMPTS:-3}
       NEXT_PUBLIC_RETRY_DELAY: ${NEXT_PUBLIC_RETRY_DELAY:-1000}
     ports:
-      - "3000:3000"
+      - "3001:3000"
     networks:
       - eval-network
+      - dokploy-network
 
 # =============================================================================
 # VOLÚMENES
@@ -137,3 +192,5 @@ volumes:
 networks:
   eval-network:
     driver: bridge
+  dokploy-network:
+    external: true
