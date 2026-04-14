@@ -1369,20 +1369,26 @@ async function getDocenteMateriaMetrics({ cfg_t, docente, codigo_materia, sede, 
 	if (!cfgId) throw new Error('cfg_t is required');
 	if (!docente) throw new Error('docente is required');
 
-	// Build filtered universe of courses (per docente)
-	const whereVista = buildVistaWhere({ sede, periodo, programa, semestre, grupo });
-	whereVista.ID_DOCENTE = docente;
+	// Build filtered universe of courses (per docente) — raw SQL to support extra columns
+	// (ASIGNATURA, etc.) that may exist in the view but are not in the Prisma schema
+	const sqlConds1 = ["DOCENTE != 'DOCENTE SIN ASIGNAR'", 'ID_DOCENTE = ?'];
+	const sqlParams1 = [docente];
+	if (sede) { sqlConds1.push('NOMBRE_SEDE = ?'); sqlParams1.push(sede); }
+	if (periodo) { sqlConds1.push('PERIODO = ?'); sqlParams1.push(periodo); }
+	if (programa) { sqlConds1.push('NOM_PROGRAMA = ?'); sqlParams1.push(programa); }
+	if (semestre) { sqlConds1.push('SEMESTRE = ?'); sqlParams1.push(semestre); }
+	if (grupo) { sqlConds1.push('GRUPO = ?'); sqlParams1.push(grupo); }
 	if (codigo_materia) {
-		// COD_ASIGNATURA is INT, convert string to number
 		const codigoMatNum = Number(codigo_materia);
 		if (!isNaN(codigoMatNum)) {
-			whereVista.COD_ASIGNATURA = codigoMatNum;
+			sqlConds1.push('COD_ASIGNATURA = ?');
+			sqlParams1.push(codigoMatNum);
 		}
 	}
-	const cursos = await userPrisma.vista_academica_insitus.findMany({
-		where: whereVista,
-		select: { COD_ASIGNATURA: true, ASIGNATURA: true, ID_ESTUDIANTE: true, DOCENTE: true, GRUPO: true, NOM_PROGRAMA: true, SEMESTRE: true }
-	});
+	const cursos = await userPrisma.$queryRawUnsafe(
+		`SELECT * FROM vista_academica_insitus WHERE ${sqlConds1.join(' AND ')}`,
+		...sqlParams1
+	);
 	if (!cursos.length) return { docente, materias: [] };
 
 	const nombreDocente = cursos.length > 0 ? cursos[0].DOCENTE : null;
@@ -1591,17 +1597,25 @@ async function getDocenteMateriaCompletion({ cfg_t, docente, codigo_materia, sed
 	if (!docente) throw new Error('docente is required');
 	if (!codigo_materia) throw new Error('codigo_materia is required');
 
-	const whereVista = buildVistaWhere({ sede, periodo, programa, semestre, grupo });
-	whereVista.ID_DOCENTE = docente;
+	// Raw SQL to support name columns (PRIMER_APELLIDO, etc.) that may exist in the view
+	// but are not in the Prisma schema
+	const sqlConds2 = ["DOCENTE != 'DOCENTE SIN ASIGNAR'", 'ID_DOCENTE = ?'];
+	const sqlParams2 = [docente];
+	if (sede) { sqlConds2.push('NOMBRE_SEDE = ?'); sqlParams2.push(sede); }
+	if (periodo) { sqlConds2.push('PERIODO = ?'); sqlParams2.push(periodo); }
+	if (programa) { sqlConds2.push('NOM_PROGRAMA = ?'); sqlParams2.push(programa); }
+	if (semestre) { sqlConds2.push('SEMESTRE = ?'); sqlParams2.push(semestre); }
+	if (grupo) { sqlConds2.push('GRUPO = ?'); sqlParams2.push(grupo); }
 	const codigoMatNum = Number(codigo_materia);
 	if (!isNaN(codigoMatNum)) {
-		whereVista.COD_ASIGNATURA = codigoMatNum;
+		sqlConds2.push('COD_ASIGNATURA = ?');
+		sqlParams2.push(codigoMatNum);
 	}
 
-	const vista = await userPrisma.vista_academica_insitus.findMany({
-		where: whereVista,
-		select: { ID_ESTUDIANTE: true, PRIMER_APELLIDO: true, SEGUNDO_APELLIDO: true, PRIMER_NOMBRE: true, SEGUNDO_NOMBRE: true, GRUPO: true, DOCENTE: true }
-	});
+	const vista = await userPrisma.$queryRawUnsafe(
+		`SELECT * FROM vista_academica_insitus WHERE ${sqlConds2.join(' AND ')}`,
+		...sqlParams2
+	);
 
 	// Group students by GRUPO
 	const byGrupo = new Map();
