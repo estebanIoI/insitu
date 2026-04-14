@@ -5,8 +5,9 @@
 // =============================================================================
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../../src/prisma/generated/user"
+  provider        = "prisma-client-js"
+  output          = "../../src/prisma/generated/user"
+  previewFeatures = ["views"]
 }
 
 datasource db {
