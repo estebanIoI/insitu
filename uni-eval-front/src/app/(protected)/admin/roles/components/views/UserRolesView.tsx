@@ -23,8 +23,8 @@ export function UserRolesView({
   const filteredUserRoles = userRoles.filter(ur => {
     const searchLow = searchTerm.toLowerCase();
     return (
-      ur.datalogin?.user_name?.toLowerCase().includes(searchLow) ||
-      ur.datalogin?.user_email?.toLowerCase().includes(searchLow) ||
+      ur.datalogin?.user_name.toLowerCase().includes(searchLow) ||
+      ur.datalogin?.user_email.toLowerCase().includes(searchLow) ||
       ur.rol_nombre?.toLowerCase().includes(searchLow)
     );
   });
