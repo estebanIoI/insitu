@@ -1,1 +1,0 @@
-export { useDocenteExpanded } from "./useDocenteExpanded";
