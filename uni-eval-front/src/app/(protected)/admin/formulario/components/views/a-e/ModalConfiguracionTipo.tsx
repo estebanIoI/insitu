@@ -286,7 +286,7 @@ export function ModalConfiguracionTipo({
     try {
       const response = await categoriaTipoMapService.listTiposByCategoria(categoriaId);
       if (response.success && response.data?.items) {
-        setTipos(response.data.items);
+        setTipos(response.data.items.filter((t: any) => t.map_id != null));
       }
     } catch (err) {
       console.error("Error loading tipos:", err);

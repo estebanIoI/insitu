@@ -103,10 +103,24 @@ interface SingleFilterResponse<T = string[]> {
  *                   type: string
  *                   example: Error al obtener filtros
  */
+const toFilterOptions = (arr: any[]): FilterOption[] => {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((item, i) =>
+    typeof item === 'string' ? { id: i + 1, nombre: item } : item
+  );
+};
+
 export const getAllFiltersLocal = async (): Promise<FilterResponse> => {
   try {
     const response = await httpClient.get('/filter');
-    return response;
+    return {
+      sedes: toFilterOptions(response?.sedes),
+      periodos: toFilterOptions(response?.periodos),
+      programas: toFilterOptions(response?.programas),
+      semestres: toFilterOptions(response?.semestres),
+      grupos: toFilterOptions(response?.grupos),
+      roles: Array.isArray(response?.roles) ? response.roles : [],
+    };
   } catch (error) {
     throw new Error('Error al obtener filtros');
   }
