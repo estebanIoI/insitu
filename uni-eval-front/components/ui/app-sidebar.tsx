@@ -294,23 +294,23 @@ export function AppSidebar({
                     style={{ background: 'linear-gradient(to bottom right, rgb(59 130 246), rgb(79 70 229))' }}
                   >
                     <span className={`text-white font-semibold ${isCollapsed && !isMobile ? 'text-xs' : 'text-sm'}`}>
-                      {user.user_name.charAt(0).toUpperCase()}
+                      {(user.user_name || user.user_username || '?').charAt(0).toUpperCase()}
                     </span>
                   </div>
                 </div>
-                
+
                 {(!isCollapsed || isMobile) && (
                   <div className="flex-1 min-w-0">
-                    {user.user_name.length > 24 ? (
+                    {(user.user_name || user.user_username || '').length > 24 ? (
                       <div className="marquee-container">
                         <div className="marquee-content font-semibold text-sm text-gray-800">
-                          <span className="marquee-text">{user.user_name}</span>
-                          <span className="marquee-text">{user.user_name}</span>
+                          <span className="marquee-text">{user.user_name || user.user_username}</span>
+                          <span className="marquee-text">{user.user_name || user.user_username}</span>
                         </div>
                       </div>
                     ) : (
                       <p className="font-semibold text-sm text-gray-800 truncate">
-                        {user.user_name}
+                        {user.user_name || user.user_username}
                       </p>
                     )}
 
