@@ -130,7 +130,7 @@ export default function CompletionModal({
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-semibold shadow-sm transition-transform group-hover:scale-110 ${
               status === 'completado' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'
             }`}>
-              {student.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+              {(student.nombre ?? '').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-slate-800 truncate group-hover:text-indigo-900 transition-colors">{student.nombre}</p>
