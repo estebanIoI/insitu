@@ -1772,7 +1772,7 @@ async function getDocenteMateriaMetrics({ cfg_t, docente, codigo_materia, sede, 
 	}
 	const cursos = await userPrisma.vista_academica_insitus.findMany({
 		where: whereVista,
-		select: { COD_ASIGNATURA: true, ASIGNATURA: true, ID_ESTUDIANTE: true, DOCENTE: true, GRUPO: true, NOM_PROGRAMA: true, SEMESTRE: true }
+		select: { COD_ASIGNATURA: true, ID_ESTUDIANTE: true, DOCENTE: true, GRUPO: true, NOM_PROGRAMA: true, SEMESTRE: true }
 	});
 	if (!cursos.length) return { docente, materias: [] };
 
@@ -1789,7 +1789,7 @@ async function getDocenteMateriaMetrics({ cfg_t, docente, codigo_materia, sede, 
 		const key = String(c.COD_ASIGNATURA);
 		const entry = byMateria.get(key) || { 
 			codigo: key, 
-			nombre: c.ASIGNATURA || null, 
+			nombre: null,
 			estudiantes: new Set(), 
 			byGrupo: new Map(),
 			programas: [],
