@@ -1,21 +1,37 @@
+const { localPrisma } = require('@config/prisma');
+
 class FilterService {
   constructor(repository) {
     this.repository = repository;
+  }
+
+  async _getRolMix() {
+    try {
+      return await localPrisma.rol_mix.findMany({
+        select: { id: true, nombre: true, origen: true, rol_origen_id: true },
+        orderBy: { id: 'asc' },
+      });
+    } catch {
+      return [];
+    }
   }
 
   /**
    * Obtiene todos los valores únicos para los filtros sin aplicar filtros
    */
   async getAllFilters() {
-    const data = await this.repository.getAllFilters();
-    
-    // Formatear los resultados para que sean arrays de strings simples
+    const [data, roles] = await Promise.all([
+      this.repository.getAllFilters(),
+      this._getRolMix(),
+    ]);
+
     return {
       sedes: data.sedes.map(item => item.NOMBRE_SEDE),
       periodos: data.periodos.map(item => item.PERIODO),
       programas: data.programas.map(item => item.NOM_PROGRAMA),
       semestres: data.semestres.map(item => item.SEMESTRE),
       grupos: data.grupos.map(item => item.GRUPO),
+      roles,
     };
   }
 
