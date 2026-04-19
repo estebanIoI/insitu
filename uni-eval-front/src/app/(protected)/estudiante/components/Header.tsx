@@ -197,9 +197,11 @@ export function Header({ onLogout }: HeaderProps) {
                 </DropdownMenuItem>
 
                 {/* MATERIAS */}
-                <DropdownMenuItem onClick={() => router.push("/estudiante/materias") }>
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  Materias
+                <DropdownMenuItem asChild>
+                  <Link href="/estudiante/materias" className="flex items-center w-full">
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Materias
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 

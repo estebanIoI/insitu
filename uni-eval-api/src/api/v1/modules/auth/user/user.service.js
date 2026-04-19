@@ -42,7 +42,6 @@ class UserService {
 
     const materiasRaw = await this.repository.findMateriasByEstudiante(ID_ESTUDIANTE);
     if (!materiasRaw || materiasRaw.length === 0) throw new AppError(MESSAGES.GENERAL.NOT_FOUND.EMPTY_RESULT, 404);
-    if (materiasRaw[0]) console.log('[DEBUG] Vista columns:', Object.keys(materiasRaw[0]));
 
     const codigosMateria = [...new Set(materiasRaw.map(m => m.COD_ASIGNATURA).filter(Boolean))];
     const materiasAllRaw = await this.repository.findMateriasByCodigos(codigosMateria);
