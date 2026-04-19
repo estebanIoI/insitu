@@ -11,6 +11,7 @@ import { configuracionEvaluacionService, type EvalByUserItem } from "@/src/api"
 import { useParams } from "next/navigation"
 import { BookOpen, GraduationCap } from "lucide-react"
 import EvaluationCard from "../../components/EvaluationCard"
+import { LoadingLogo } from "../../components/LoadingLogo"
 
 export default function EstudianteDashboard() {
   const { toast } = useToast()
@@ -57,11 +58,7 @@ export default function EstudianteDashboard() {
   }, [toast, id, configId])
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-800"></div>
-      </div>
-    )
+    return <LoadingLogo size="md" text="Cargando materias..." />
   }
 
   return (

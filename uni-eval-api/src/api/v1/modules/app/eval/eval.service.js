@@ -61,38 +61,51 @@ class EvalService {
 			}))
 		];
 
-		// Query vista_academica_insitus to get names
-		const vistaData = await userPrisma.vista_academica_insitus.findMany({
-			where: {
-				OR: orConditions
-			},
-			select: {
-				ID_DOCENTE: true,
-				ID_ESTUDIANTE: true,
-				DOCENTE: true,
-				COD_ASIGNATURA: true,
-				ASIGNATURA: true,
-				ABREVIATURA_CURSO: true
-			}
-		});
+		// Collect unique COD_ASIGNATURA values for the raw query
+		const allCodigos = [...new Set([
+			...docentePairs.map(p => p.codigo),
+			...estudiantePairs.map(p => p.codigo),
+		])];
+		const allDocentes = [...new Set(docentePairs.map(p => p.docente))];
+		const allEstudiantes = [...new Set(estudiantePairs.map(p => p.estudiante))];
+
+		// Use SELECT * via raw query to get ALL view columns (including any unmapped name fields)
+		let vistaData = [];
+		if (allCodigos.length > 0) {
+			const codigosStr = allCodigos.join(',');
+			const docentesStr = allDocentes.length ? `'${allDocentes.join("','")}'` : null;
+			const estudiantesStr = allEstudiantes.length ? `'${allEstudiantes.join("','")}'` : null;
+
+			const whereDocente = docentesStr ? `(ID_DOCENTE IN (${docentesStr}) AND COD_ASIGNATURA IN (${codigosStr}))` : 'FALSE';
+			const whereEstudiante = estudiantesStr ? `(ID_ESTUDIANTE IN (${estudiantesStr}) AND COD_ASIGNATURA IN (${codigosStr}))` : 'FALSE';
+
+			vistaData = await userPrisma.$queryRawUnsafe(
+				`SELECT * FROM vista_academica_insitus WHERE ${whereDocente} OR ${whereEstudiante}`
+			);
+		}
+
+		const resolveNombre = (v) => {
+			const candidates = [v?.ASIGNATURA, v?.NOMBRE_ASIGNATURA, v?.NOM_ASIGNATURA, v?.NOMBRE_MATERIA, v?.NOM_MATERIA, v?.MATERIA, v?.ABREVIATURA_CURSO];
+			return candidates.find(c => c && String(c).trim().length > 0) || null;
+		};
 
 		// Create separate lookup maps for docente and estudiante
 		const lookupMapDocente = new Map();
 		const lookupMapEstudiante = new Map();
-		
+
 		vistaData.forEach(v => {
 			if (v.ID_DOCENTE) {
 				const key = `${v.ID_DOCENTE}_${v.COD_ASIGNATURA}`;
 				lookupMapDocente.set(key, {
 					nombre_docente: v.DOCENTE,
-					nombre_materia: v.ASIGNATURA || v.ABREVIATURA_CURSO || null
+					nombre_materia: resolveNombre(v)
 				});
 			}
 			if (v.ID_ESTUDIANTE) {
 				const key = `${v.ID_ESTUDIANTE}_${v.COD_ASIGNATURA}`;
 				lookupMapEstudiante.set(key, {
 					nombre_docente: v.DOCENTE,
-					nombre_materia: v.ASIGNATURA || v.ABREVIATURA_CURSO || null
+					nombre_materia: resolveNombre(v)
 				});
 			}
 		});

@@ -1,6 +1,20 @@
 const AppError = require('@utils/AppError');
 const MESSAGES = require('@constants/messages');
 
+// Tries multiple possible column names for subject name (DB view may vary)
+const resolveNombreMateria = (row) => {
+  const candidates = [
+    row?.ASIGNATURA,
+    row?.NOMBRE_ASIGNATURA,
+    row?.NOM_ASIGNATURA,
+    row?.NOMBRE_MATERIA,
+    row?.NOM_MATERIA,
+    row?.MATERIA,
+    row?.ABREVIATURA_CURSO,
+  ];
+  return candidates.find(v => v && String(v).trim().length > 0) || null;
+};
+
 const getModa = (arr) => {
   const freq = new Map();
   for (const value of arr.filter(Boolean)) {
@@ -28,6 +42,7 @@ class UserService {
 
     const materiasRaw = await this.repository.findMateriasByEstudiante(ID_ESTUDIANTE);
     if (!materiasRaw || materiasRaw.length === 0) throw new AppError(MESSAGES.GENERAL.NOT_FOUND.EMPTY_RESULT, 404);
+    if (materiasRaw[0]) console.log('[DEBUG] Vista columns:', Object.keys(materiasRaw[0]));
 
     const codigosMateria = [...new Set(materiasRaw.map(m => m.COD_ASIGNATURA).filter(Boolean))];
     const materiasAllRaw = await this.repository.findMateriasByCodigos(codigosMateria);
@@ -53,7 +68,7 @@ class UserService {
       if (!materiasMap.has(cod)) {
         materiasMap.set(cod, {
           codigo: cod,
-          nombre: m.ASIGNATURA || m.ABREVIATURA_CURSO || null,
+          nombre: resolveNombreMateria(m),
           _docentes: []
         });
       }
@@ -131,7 +146,7 @@ class UserService {
       if (!materiasMap.has(cod)) {
         materiasMap.set(cod, {
           codigo: cod,
-          nombre: m.ASIGNATURA,
+          nombre: resolveNombreMateria(m),
           grupos: new Map()
         });
       }

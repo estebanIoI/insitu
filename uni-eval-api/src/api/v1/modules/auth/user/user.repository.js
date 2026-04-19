@@ -1,22 +1,27 @@
-const { userPrisma } = require('@config/prisma'); 
+const { userPrisma } = require('@config/prisma');
 
 class UserRepository {
   constructor() {
     this.model = userPrisma.vista_academica_insitus;
   }
 
-  findMateriasByEstudiante(ID_ESTUDIANTE) {
-    return this.model.findMany({
-      where: { ID_ESTUDIANTE },
-      orderBy: { PERIODO: 'asc' }
-    });
+  async findMateriasByEstudiante(ID_ESTUDIANTE) {
+    // Use raw query to get ALL columns from the view, including any unmapped name fields
+    const rows = await userPrisma.$queryRaw`
+      SELECT * FROM vista_academica_insitus
+      WHERE ID_ESTUDIANTE = ${ID_ESTUDIANTE}
+      ORDER BY PERIODO ASC
+    `;
+    return rows;
   }
 
-  findMateriasByDocente(ID_DOCENTE) {
-    return this.model.findMany({
-      where: { ID_DOCENTE },
-      orderBy: { PERIODO: 'asc' }
-    });
+  async findMateriasByDocente(ID_DOCENTE) {
+    const rows = await userPrisma.$queryRaw`
+      SELECT * FROM vista_academica_insitus
+      WHERE ID_DOCENTE = ${ID_DOCENTE}
+      ORDER BY PERIODO ASC
+    `;
+    return rows;
   }
 
   findMateriasByCodigos(codigos) {

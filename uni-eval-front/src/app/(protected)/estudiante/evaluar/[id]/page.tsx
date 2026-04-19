@@ -11,7 +11,8 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { configuracionEvaluacionService } from "@/src/api/services/app/cfg-t.service";
 import { evaluacionDetalleService } from "@/src/api/services/app/eval-det.service";
-import { ChevronDown, ChevronUp, ClipboardList, BookOpen, User, GraduationCap } from "lucide-react";
+import { ChevronDown, ChevronUp, BookOpen, User, GraduationCap } from "lucide-react";
+import { LoadingLogo } from "../../components/LoadingLogo";
 import { motion } from "framer-motion";
 
 import type { ConfiguracionAspectosEscalasResponse } from "@/src/api/services/app/cfg-t.service";
@@ -286,11 +287,7 @@ export default function EvaluarDocentePage({ params }: { params: Promise<{ id: s
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <ClipboardList className="animate-pulse h-12 w-12 text-gray-400" />
-      </div>
-    );
+    return <LoadingLogo size="md" text="Cargando evaluación..." />;
   }
 
   if (!config) return null;

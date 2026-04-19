@@ -12,6 +12,7 @@ import type { ConfiguracionTipo, EvalByUserItem, EvalGeneradaItem, UserProfile }
 import { FileText, AlertCircle } from "lucide-react"
 import { ModalEvaluacionesCreadas } from "../components/ModalEvaluacionesCreadas"
 import { Header } from "../components/Header"
+import { LoadingLogo } from "../components/LoadingLogo"
 import EvaluacionCard from "../components/CfgEvaluacionCard"
 import Image from "next/image"
 
@@ -301,14 +302,7 @@ export default function EstudianteBienvenida() {
   }
 
   if (!perfil) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Cargando...</p>
-        </div>
-      </div>
-    )
+    return <LoadingLogo fullScreen text="Cargando..." />
   }
 
   return (
@@ -325,12 +319,7 @@ export default function EstudianteBienvenida() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="relative">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
-                <div className="animate-ping absolute top-2 left-2 h-12 w-12 rounded-full bg-gray-200 opacity-75"></div>
-              </div>
-            </div>
+            <LoadingLogo size="lg" text="Cargando evaluaciones..." />
           ) : configuraciones.length === 0 ? (
             <Card className="max-w-md mx-auto animate-fade-in-up shadow-lg hover:shadow-xl transition-all duration-300">
               <CardContent className="text-center py-20">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { CheckCircle, Loader2, BookOpen, User, Clock, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,17 +63,17 @@ export function ModalEvaluacionesCreadas({
           <>
             <DialogHeader>
               <div className="flex flex-col items-center text-center space-y-5 sm:space-y-6 py-2 sm:py-4">
-                {/* Spinner principal con efectos */}
+                {/* Logo pulsante */}
                 <div className="relative">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
-                  <div className="absolute inset-0 w-16 h-16 sm:w-20 sm:h-20 border-4 border-transparent border-r-green-400 rounded-full animate-spin animate-reverse delay-75"></div>
-                  <div className="absolute inset-2 w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-50 to-green-50 rounded-full flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 animate-pulse" />
-                  </div>
-                  {/* Partículas flotantes */}
-                  <div className="absolute -top-2 -right-2 w-3 h-3 bg-blue-400 rounded-full animate-bounce delay-100"></div>
-                  <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-green-400 rounded-full animate-bounce delay-300"></div>
-                  <div className="absolute top-1/2 -left-4 w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-500"></div>
+                  <div className="absolute inset-0 rounded-full bg-blue-100 scale-125 animate-ping opacity-20" />
+                  <Image
+                    src="/img/uniPutumayo/1-logo-azul-PNG.png"
+                    alt="Cargando"
+                    width={100}
+                    height={100}
+                    className="relative animate-pulse drop-shadow-md object-contain"
+                    priority
+                  />
                 </div>
                 
                 <div className="space-y-2">
