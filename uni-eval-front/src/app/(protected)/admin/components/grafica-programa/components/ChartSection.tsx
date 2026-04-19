@@ -117,7 +117,7 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
               fill="hsl(221, 83%, 53%)"
               maxBarSize={80}
               cursor="pointer"
-              shape={<CompletadasShape />}
+              shape={(props: any) => <CompletadasShape {...props} />}
               onClick={(data) => onBarClick(data.programaCompleto, "completadas")}
             >
               {chartData.map((data, index) => {
