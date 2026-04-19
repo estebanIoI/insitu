@@ -171,6 +171,8 @@ export default function EstudianteBienvenida() {
   }
 
   const handleIniciarEvaluacion = async (configuracion: ConfiguracionTipo) => {
+    if (isCreatingEvaluaciones) return;
+
     if (!perfil) {
       toast({
         title: "Error",
@@ -215,8 +217,6 @@ export default function EstudianteBienvenida() {
       setIsCreatingEvaluaciones(true)
       setEvaluacionesCreadas([])
       setModalEvaluacionesOpen(true)
-
-      await new Promise(resolve => setTimeout(resolve, 500))
 
       const response = await evalService.generar(configId)
 

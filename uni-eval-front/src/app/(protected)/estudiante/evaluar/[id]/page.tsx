@@ -22,6 +22,7 @@ interface ConfirmModalProps {
   onConfirm: () => void;
   title: string;
   description: string;
+  isSubmitting?: boolean;
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -30,6 +31,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onConfirm,
   title,
   description,
+  isSubmitting,
 }) => {
   if (!isOpen) return null;
 
@@ -43,10 +45,12 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <p className="text-gray-600">{description}</p>
         </CardContent>
         <CardFooter className="flex justify-end gap-3">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button onClick={onConfirm}>Confirmar</Button>
+          <Button onClick={onConfirm} disabled={isSubmitting}>
+            {isSubmitting ? "Enviando..." : "Confirmar"}
+          </Button>
         </CardFooter>
       </Card>
     </div>
@@ -187,7 +191,15 @@ export default function EvaluarDocentePage({ params }: { params: Promise<{ id: s
   };
 
   const enviar = async () => {
-    if (!config || !evalId) return;
+    if (!config || !evalId) {
+      toast({
+        title: "Error",
+        description: "No se pudo identificar la evaluación. Vuelve a la lista e intenta nuevamente.",
+        variant: "destructive",
+      });
+      setShowConfirm(false);
+      return;
+    }
 
     setIsSubmitting(true);
     setFieldErrors({});
@@ -454,10 +466,11 @@ export default function EvaluarDocentePage({ params }: { params: Promise<{ id: s
 
       <ConfirmModal
         isOpen={showConfirm}
-        onClose={() => setShowConfirm(false)}
+        onClose={() => { if (!isSubmitting) setShowConfirm(false); }}
         onConfirm={enviar}
         title="Confirmar evaluación"
-        description="¿Seguro que deseas enviar la evaluación?"
+        description="¿Seguro que deseas enviar la evaluación? No podrás modificarla después."
+        isSubmitting={isSubmitting}
       />
     </div>
   );

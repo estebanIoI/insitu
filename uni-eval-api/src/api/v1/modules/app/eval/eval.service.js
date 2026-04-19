@@ -71,7 +71,8 @@ class EvalService {
 				ID_ESTUDIANTE: true,
 				DOCENTE: true,
 				COD_ASIGNATURA: true,
-				ASIGNATURA: true
+				ASIGNATURA: true,
+				ABREVIATURA_CURSO: true
 			}
 		});
 
@@ -84,14 +85,14 @@ class EvalService {
 				const key = `${v.ID_DOCENTE}_${v.COD_ASIGNATURA}`;
 				lookupMapDocente.set(key, {
 					nombre_docente: v.DOCENTE,
-					nombre_materia: v.ASIGNATURA
+					nombre_materia: v.ASIGNATURA || v.ABREVIATURA_CURSO || null
 				});
 			}
 			if (v.ID_ESTUDIANTE) {
 				const key = `${v.ID_ESTUDIANTE}_${v.COD_ASIGNATURA}`;
 				lookupMapEstudiante.set(key, {
 					nombre_docente: v.DOCENTE,
-					nombre_materia: v.ASIGNATURA
+					nombre_materia: v.ASIGNATURA || v.ABREVIATURA_CURSO || null
 				});
 			}
 		});
