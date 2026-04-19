@@ -91,40 +91,6 @@ const getProgress = (inicio: string, fin: string) => {
   return Math.max(0, Math.min(100, (passed / total) * 100));
 };
 
-const formatScopeSummary = (config: ConfiguracionTipo) => {
-  if (!config.scopes?.length) return "Sin scopes";
-  const scope = config.scopes[0];
-  const programa = scope.programa_nombre ? ` · ${scope.programa_nombre}` : "";
-  const semestre = scope.semestre_nombre ? ` · ${scope.semestre_nombre}` : "";
-  const grupo = scope.grupo_nombre ? ` · ${scope.grupo_nombre}` : "";
-  return `${scope.sede_nombre || "Sede N/A"} · ${scope.periodo_nombre || "Periodo N/A"}${programa}${semestre}${grupo}`;
-};
-
-const formatScopeSedePeriodo = (config: ConfiguracionTipo) => {
-  if (!config.scopes?.length) return "Sede N/A · Periodo N/A";
-  const scope = config.scopes[0];
-  return `${scope.sede_nombre || "Sede N/A"} · ${scope.periodo_nombre || "Periodo N/A"}`;
-};
-
-const getScopeDetallesRows = (config: ConfiguracionTipo) => {
-  if (!config.scopes?.length) return ["Sin detalle de scope"];
-  const scope = config.scopes[0];
-  const rows: string[] = [];
-
-  if (scope.programa_nombre) {
-    rows.push(scope.programa_nombre);
-  }
-
-  const semestreGrupo = [scope.semestre_nombre, scope.grupo_nombre]
-    .filter(Boolean)
-    .join(" - ");
-
-  if (semestreGrupo) {
-    rows.push(semestreGrupo);
-  }
-
-  return rows.length > 0 ? rows : ["Sin detalle de scope"];
-};
 
 // ---------- Component ----------
 export default function EvaluacionCard({
@@ -252,29 +218,28 @@ export default function EvaluacionCard({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[calc(100vw-2rem)] max-w-md rounded-2xl border-slate-200 p-4">
-                  <div className="grid grid-cols-1 gap-2 text-center">
-                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                      <p className="text-sm font-medium text-slate-700 line-clamp-2 text-center">
-                        {formatScopeSedePeriodo(configuracion)}
-                      </p>
-                    </div>
-
+                  <div className="grid grid-cols-1 gap-2">
+                    <p className="text-xs uppercase tracking-wide text-slate-500 text-center mb-1">Configuración</p>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <p className="text-xs md:text-sm font-medium text-slate-800 text-center">{tipoFormNombre.toUpperCase()}</p>
+                        <p className="text-xs text-slate-500 text-center">Tipo formulario</p>
+                        <p className="text-xs md:text-sm font-medium text-slate-800 text-center mt-1">{tipoFormNombre}</p>
                       </div>
                       <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <p className="text-xs md:text-sm font-medium text-slate-700 line-clamp-2 text-center">
-                          {(configuracion.rolesRequeridos?.[0]?.nombre || "-").toUpperCase()}
+                        <p className="text-xs text-slate-500 text-center">Comentarios</p>
+                        <p className="text-xs md:text-sm font-medium text-slate-800 text-center mt-1">
+                          {configuracion.es_cmt_gen ? "Habilitados" : "Deshabilitados"}
                         </p>
                       </div>
                     </div>
-
-                    {getScopeDetallesRows(configuracion).map((detalle, idx) => (
-                      <div key={`${configuracion.id}-detalle-popover-${idx}`} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                        <p className="text-sm font-medium text-slate-700 line-clamp-2 text-center">{detalle}</p>
+                    {configuracion.tipo_evaluacion?.categoria?.nombre && (
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                        <p className="text-xs text-slate-500 text-center">Categoría</p>
+                        <p className="text-sm font-medium text-slate-700 text-center mt-1">
+                          {configuracion.tipo_evaluacion.categoria.nombre}
+                        </p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </PopoverContent>
               </Popover>

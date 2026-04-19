@@ -53,7 +53,7 @@ class UserService {
       if (!materiasMap.has(cod)) {
         materiasMap.set(cod, {
           codigo: cod,
-          nombre: m.ASIGNATURA,
+          nombre: m.ASIGNATURA || m.ABREVIATURA_CURSO || null,
           _docentes: []
         });
       }

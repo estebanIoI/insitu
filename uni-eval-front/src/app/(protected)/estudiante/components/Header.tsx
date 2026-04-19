@@ -236,11 +236,13 @@ export function Header({ onLogout }: HeaderProps) {
                   value={perfilAcademico.programa}
                 />
 
-                <InfoItem
-                  icon={<Building2 size={18} />}
-                  label="Facultad"
-                  value={perfilAcademico.facultad}
-                />
+                {perfilAcademico.facultad && (
+                  <InfoItem
+                    icon={<Building2 size={18} />}
+                    label="Facultad"
+                    value={perfilAcademico.facultad}
+                  />
+                )}
 
                 <InfoItem
                   icon={<MapPin size={18} />}
@@ -262,8 +264,11 @@ export function Header({ onLogout }: HeaderProps) {
                   </p>
 
                   {perfilAcademico.materias.map((m, i) => (
-                    <div key={i} className="p-2 border rounded-lg text-sm">
-                      {m.nombre}
+                    <div key={i} className="p-2 border rounded-lg text-sm flex justify-between items-center gap-2">
+                      <span>{m.nombre || `Materia ${m.codigo}`}</span>
+                      {m.docente?.nombre && (
+                        <span className="text-xs text-gray-500 truncate">{m.docente.nombre}</span>
+                      )}
                     </div>
                   ))}
                 </div>
