@@ -61,6 +61,15 @@ class CfgTController {
 			next(err);
 		}
 	};
+
+	createFull = async (req, res, next) => {
+		try {
+			const data = await service.createFull(req.body);
+			return successResponse(res, { message: 'Configuración creada correctamente', data });
+		} catch (err) {
+			next(err);
+		}
+	};
 }
 
 module.exports = new CfgTController();

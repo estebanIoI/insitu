@@ -7,14 +7,17 @@ const sort = require('@middlewares/http/sort');
 
 const router = Router();
 
-// GET /cfg/t -> listado de configuraciones según rol del usuario
-router.get('/r', 
-  ensureAuth, 
-  requireAuthorization(), 
+// GET /cfg/t/r -> listado de configuraciones según rol del usuario
+router.get('/r',
+  ensureAuth,
+  requireAuthorization(),
   search({ searchFields: ['nombre', 'descripcion'], minLength: 2 }),
   sort({ defaultSortBy: 'id', defaultSortOrder: 'desc', allowedFields: ['id', 'nombre', 'fecha_inicio'] }),
   controller.getCfgTList
 );
+
+// POST /cfg/t/full -> crear cfg_t + roles + autoevaluación opcional
+router.post('/full', ensureAuth, requireAppRoles(1), controller.createFull);
 
 // GET /cfg/t/:id/a-e -> aspectos y escalas relacionados via a_e
 router.get('/:id/a-e', ensureAuth, requireAuthRoles(1, 2), controller.getAspectosEscalas);

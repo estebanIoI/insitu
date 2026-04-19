@@ -112,6 +112,8 @@ class UserRolRepository {
 					select: {
 						user_id: true,
 						user_username: true,
+						user_name: true,
+						user_email: true,
 						user_idrole: true,
 						user_statusid: true,
 						role_name: true
