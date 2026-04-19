@@ -112,6 +112,7 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
               fill="hsl(221, 83%, 53%)"
               radius={[0, 4, 4, 0]}
               maxBarSize={80}
+              minPointSize={3}
               cursor="pointer"
               onClick={(data) =>
                 onBarClick(data.programaCompleto, "completadas")
