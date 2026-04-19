@@ -356,6 +356,9 @@ export default function CompletionModal({
                 {/* Pie Chart Visualization */}
                 <div className="lg:col-span-5 flex flex-col items-center">
                   <div className="relative w-full h-[280px]">
+                    {totalStats.total === 0 ? (
+                      <div className="flex items-center justify-center h-full text-slate-400 text-sm">Sin datos de participación</div>
+                    ) : (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -379,6 +382,7 @@ export default function CompletionModal({
                         />
                       </PieChart>
                     </ResponsiveContainer>
+                    )}
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                        <span className="text-4xl font-bold text-slate-900">
                         {Math.round((totalStats.completados / (totalStats.total || 1)) * 100)}%

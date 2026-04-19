@@ -282,6 +282,8 @@ function AspectosChart({ aspectos }: { aspectos: ReporteInstitucionalResponse["a
       promedio: Number((a.promedio ?? 0).toFixed(2)),
     }));
 
+  if (!data.length) return null;
+
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
       <div className="flex items-center gap-2 mb-5">

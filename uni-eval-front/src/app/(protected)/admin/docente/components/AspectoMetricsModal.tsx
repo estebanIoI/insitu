@@ -341,6 +341,9 @@ export default function AspectoMetricsModal({
                     </h3>
                   </div>
                   <div className="w-full h-[450px]">
+                    {radarData.length === 0 ? (
+                      <div className="flex items-center justify-center h-full text-slate-400 text-sm">Sin datos de aspectos</div>
+                    ) : (
                     <ResponsiveContainer width="100%" height="100%">
                       <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                         <PolarGrid stroke="#f1f5f9" />
@@ -377,6 +380,7 @@ export default function AspectoMetricsModal({
                         <Legend wrapperStyle={{ paddingTop: '30px' }} iconType="circle" />
                       </RadarChart>
                     </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
 
