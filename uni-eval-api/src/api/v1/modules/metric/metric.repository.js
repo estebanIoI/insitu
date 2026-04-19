@@ -305,6 +305,7 @@ async function getEvaluationSummaryByProgram({ cfg_t, sede, periodo, programa, s
 	const cfgId = Number(cfg_t);
 	if (!cfgId) throw new Error('cfg_t is required');
 
+	// NOTE: 'programa' is intentionally NOT passed to buildVistaWhere so all programs are fetched
 	const whereVista = buildVistaWhere({ sede, periodo, semestre, grupo });
 
 	const vista = await userPrisma.vista_academica_insitus.findMany({
@@ -312,58 +313,118 @@ async function getEvaluationSummaryByProgram({ cfg_t, sede, periodo, programa, s
 		select: { ID_ESTUDIANTE: true, ID_DOCENTE: true, COD_ASIGNATURA: true, GRUPO: true, NOM_PROGRAMA: true, SEMESTRE: true }
 	});
 
-	// Si se especificó un programa, obtener los semestres de ese programa
-	let semestresDelProgramaSeleccionado = new Set();
-	if (programa) {
-		for (const v of vista) {
-			if (v.NOM_PROGRAMA === programa && v.SEMESTRE) {
-				semestresDelProgramaSeleccionado.add(v.SEMESTRE);
-			}
-		}
-	}
+	if (vista.length === 0) return { programas: [] };
 
+	// --- Batch all DB queries upfront (avoids N+1 pattern) ---
+	const allEstudiantes = new Set(vista.map(v => v.ID_ESTUDIANTE).filter(Boolean));
+	const allDocentes    = new Set(vista.map(v => v.ID_DOCENTE).filter(Boolean));
+
+	const allEvals = await localPrisma.eval.findMany({
+		where: {
+			id_configuracion: cfgId,
+			estudiante: { in: Array.from(allEstudiantes) },
+			docente:    { in: Array.from(allDocentes) },
+		},
+		select: { id: true, estudiante: true, docente: true, codigo_materia: true },
+	});
+
+	const allEvalIds = allEvals.map(e => e.id);
+	const allEvalDet = allEvalIds.length
+		? await localPrisma.eval_det.findMany({
+				where: { eval_id: { in: allEvalIds } },
+				select: { eval_id: true },
+			})
+		: [];
+
+	const evalsWithResponses = new Set(allEvalDet.map(d => d.eval_id));
+
+	// Build realized key set: "estudiante::docente::cod_asignatura"
+	// Only evals that have at least one response and whose materia matches the universe
+	const realizedKeySet = new Set(
+		allEvals
+			.filter(e => evalsWithResponses.has(e.id) && e.codigo_materia != null)
+			.map(e => `${e.estudiante}::${e.docente}::${Number(e.codigo_materia)}`)
+	);
+
+	// Group vista by program
 	const byPrograma = new Map();
 	for (const v of vista) {
-		const programaNombre = v.NOM_PROGRAMA || 'SIN_PROGRAMA';
-		const list = byPrograma.get(programaNombre) || [];
+		const nombre = v.NOM_PROGRAMA || 'SIN_PROGRAMA';
+		const list = byPrograma.get(nombre) || [];
 		list.push(v);
-		byPrograma.set(programaNombre, list);
+		byPrograma.set(nombre, list);
+	}
+
+	// If a specific program is selected, keep only programs that share semestres with it
+	let semestresSeleccionados = new Set();
+	if (programa) {
+		const rowsSel = byPrograma.get(programa) || [];
+		for (const v of rowsSel) {
+			if (v.SEMESTRE) semestresSeleccionados.add(v.SEMESTRE);
+		}
 	}
 
 	const programas = [];
 	for (const [nombre, rows] of byPrograma.entries()) {
-		// Si se especificó un programa, filtrar solo programas que compartan al menos un semestre
-		if (programa && semestresDelProgramaSeleccionado.size > 0) {
-			const semestresDeEsteProg = new Set(rows.map(r => r.SEMESTRE).filter(Boolean));
-			const hayInterseccion = Array.from(semestresDeEsteProg).some(s => semestresDelProgramaSeleccionado.has(s));
-			if (!hayInterseccion) continue;
+		if (programa && semestresSeleccionados.size > 0) {
+			const semsProg = new Set(rows.map(r => r.SEMESTRE).filter(Boolean));
+			if (!Array.from(semsProg).some(s => semestresSeleccionados.has(s))) continue;
 		}
 
-		const metricas = await computeEvaluationMetricsFromVista(rows, cfgId);
+		const metricas = _computeProgramMetrics(rows, realizedKeySet);
 
 		const byGrupo = new Map();
 		for (const r of rows) {
-			const grupoNombre = r.GRUPO || 'SIN_GRUPO';
-			const list = byGrupo.get(grupoNombre) || [];
+			const g = r.GRUPO || 'SIN_GRUPO';
+			const list = byGrupo.get(g) || [];
 			list.push(r);
-			byGrupo.set(grupoNombre, list);
+			byGrupo.set(g, list);
 		}
 
 		const grupos = [];
-		for (const [grupo, rowsGrupo] of byGrupo.entries()) {
-			const metricasGrupo = await computeEvaluationMetricsFromVista(rowsGrupo, cfgId);
-			grupos.push({ grupo, metricas: metricasGrupo });
+		for (const [g, rowsG] of byGrupo.entries()) {
+			grupos.push({ grupo: g, metricas: _computeProgramMetrics(rowsG, realizedKeySet) });
 		}
 
 		const programaObj = { nombre, metricas, grupos };
-		// Marcar el programa seleccionado
-		if (programa && nombre === programa) {
-			programaObj.selected = true;
-		}
+		if (programa && nombre === programa) programaObj.selected = true;
 		programas.push(programaObj);
 	}
 
 	return { programas };
+}
+
+// Pure in-memory metrics computation — no DB calls needed once evals are pre-fetched
+function _computeProgramMetrics(rows, realizedKeySet) {
+	// Universe: unique (estudiante, docente, cod_asignatura) combinations in this scope
+	const universeKeys = new Set();
+	for (const v of rows) {
+		if (!v.ID_ESTUDIANTE || !v.ID_DOCENTE) continue;
+		universeKeys.add(`${v.ID_ESTUDIANTE}::${v.ID_DOCENTE}::${v.COD_ASIGNATURA}`);
+	}
+
+	let realizadas = 0;
+	for (const key of universeKeys) {
+		if (realizedKeySet.has(key)) realizadas++;
+	}
+
+	const totalEvaluaciones = universeKeys.size;
+	const pendientes = Math.max(totalEvaluaciones - realizadas, 0);
+
+	const estudiantesSet = new Set(rows.map(r => r.ID_ESTUDIANTE).filter(Boolean));
+	const docentesSet    = new Set(rows.map(r => r.ID_DOCENTE).filter(Boolean));
+
+	return {
+		total_evaluaciones: totalEvaluaciones,
+		total_evaluaciones_registradas: realizadas,
+		total_realizadas: realizadas,
+		total_pendientes: pendientes,
+		total_estudiantes: estudiantesSet.size,
+		total_estudiantes_registrados: realizadas,
+		total_estudiantes_pendientes: estudiantesSet.size - realizadas,
+		total_docentes: docentesSet.size,
+		total_docentes_pendientes: docentesSet.size,
+	};
 }
 
 async function getAllDocentesStats({ cfg_t, sede, periodo, programa, semestre, grupo, page = 1, limit = 10 }, search = {}, sort = {}) {
