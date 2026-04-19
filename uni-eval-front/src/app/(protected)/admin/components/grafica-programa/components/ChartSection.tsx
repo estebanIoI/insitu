@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { ChartContainer, ChartTooltip, ChartConfig } from "@/components/ui/chart";
 import {
@@ -8,7 +9,6 @@ import {
   CartesianGrid,
   Cell,
   LabelList,
-  ResponsiveContainer,
 } from "recharts";
 import { CustomChartTooltip } from "./CustomChartTooltip";
 import type { ChartDataItem } from "../utils/chartDataHelper";
@@ -32,6 +32,14 @@ const chartConfig: ChartConfig = {
   },
 };
 
+// Custom bar shape for completadas: minimum 6px when value > 0, nothing when 0
+const CompletadasShape = (props: any) => {
+  const { x, y, width, height, value, fill } = props;
+  if (!value || value === 0) return null;
+  const drawWidth = Math.max(width || 0, 6);
+  return <rect x={x} y={y} width={drawWidth} height={height} fill={fill} rx={2} />;
+};
+
 export const ChartSection: React.FC<ChartSectionProps> = ({
   chartData,
   hasSelected,
@@ -39,12 +47,11 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
   onProgramaClick,
   programaSeleccionado,
 }) => {
-  // Custom tick component para hacer clickeable los nombres
   const CustomYAxisTick = (props: any) => {
     const { x, y, payload } = props;
     const programaData = chartData.find((d) => d.name === payload.value);
     const isSelected = programaData?.programaCompleto === programaSeleccionado;
-    
+
     return (
       <g transform={`translate(${x},${y})`}>
         <rect
@@ -78,20 +85,15 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
 
   return (
     <>
-      {/* Gráfico */}
       <div className="w-full" style={{ height: `${Math.max(400, chartData.length * 50)}px` }}>
         <ChartContainer config={chartConfig} className="h-full w-full">
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 20, right: 10, left: 260, bottom: 20 }}
+            margin={{ top: 20, right: 50, left: 260, bottom: 20 }}
             barGap={0}
           >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={true}
-              stroke="#e5e7eb"
-            />
+            <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e5e7eb" />
             <XAxis
               type="number"
               tick={{ fill: "#6b7280", fontSize: 12 }}
@@ -107,27 +109,22 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
               width={280}
             />
             <ChartTooltip content={<CustomChartTooltip />} />
+
+            {/* Barra de completadas: shape custom para mínimo visible solo cuando value > 0 */}
             <Bar
               dataKey="completadas"
               stackId="stack"
               fill="hsl(221, 83%, 53%)"
-              radius={[0, 4, 4, 0]}
               maxBarSize={80}
               cursor="pointer"
-              onClick={(data) =>
-                onBarClick(data.programaCompleto, "completadas")
-              }
+              shape={<CompletadasShape />}
+              onClick={(data) => onBarClick(data.programaCompleto, "completadas")}
             >
               {chartData.map((data, index) => {
                 const isSelected = data.programaCompleto === programaSeleccionado;
                 let fillColor = "hsl(221, 83%, 53%)";
-
-                if (isSelected) {
-                  fillColor = "hsl(221, 83%, 43%)";
-                } else if (programaSeleccionado && !isSelected) {
-                  fillColor = "hsl(215, 16%, 85%)";
-                }
-
+                if (isSelected) fillColor = "hsl(221, 83%, 43%)";
+                else if (programaSeleccionado && !isSelected) fillColor = "hsl(215, 16%, 85%)";
                 return (
                   <Cell
                     key={`completadas-${index}`}
@@ -136,16 +133,43 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
                   />
                 );
               })}
+            </Bar>
+
+            {/* Barra de pendientes: lleva el label de completadas para que quede encima de todo */}
+            <Bar
+              dataKey="pendientes"
+              stackId="stack"
+              fill="hsl(220, 8%, 85%)"
+              radius={[4, 4, 4, 4]}
+              maxBarSize={80}
+              cursor="pointer"
+              onClick={(data) => onBarClick(data.programaCompleto, "pendientes")}
+            >
+              {chartData.map((data, index) => {
+                const isSelected = data.programaCompleto === programaSeleccionado;
+                let fillColor = "hsl(220, 8%, 85%)";
+                if (isSelected) fillColor = "hsl(220, 8%, 70%)";
+                else if (programaSeleccionado && !isSelected) fillColor = "hsl(215, 16%, 85%)";
+                return (
+                  <Cell
+                    key={`pendientes-${index}`}
+                    className={isSelected ? "drop-shadow-lg" : ""}
+                    fill={fillColor}
+                  />
+                );
+              })}
+              {/* Label de completadas renderizado aquí (después de pendientes) para quedar visible */}
               <LabelList
                 dataKey="completadas"
+                position="right"
                 content={(props: any) => {
                   const { x, y, width, height, value } = props;
-                  if (!value || value === 0 || width > 40) return null;
+                  if (!value || value === 0) return null;
                   return (
                     <text
-                      x={x + width + 6}
-                      y={y + height / 2}
-                      fill="hsl(221, 83%, 40%)"
+                      x={x + (width || 0) + 6}
+                      y={y + (height || 0) / 2}
+                      fill="hsl(221, 83%, 35%)"
                       fontSize={11}
                       fontWeight={700}
                       dominantBaseline="middle"
@@ -156,36 +180,6 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
                 }}
               />
             </Bar>
-            <Bar
-              dataKey="pendientes"
-              stackId="stack"
-              fill="hsl(220, 8%, 85%)"
-              radius={[4, 0, 0, 4]}
-              maxBarSize={80}
-              cursor="pointer"
-              onClick={(data) =>
-                onBarClick(data.programaCompleto, "pendientes")
-              }
-            >
-              {chartData.map((data, index) => {
-                const isSelected = data.programaCompleto === programaSeleccionado;
-                let fillColor = "hsl(220, 8%, 85%)";
-                
-                if (isSelected) {
-                  fillColor = "hsl(220, 8%, 70%)";
-                } else if (programaSeleccionado && !isSelected) {
-                  fillColor = "hsl(215, 16%, 85%)";
-                }
-                
-                return (
-                  <Cell
-                    key={`pendientes-${index}`}
-                    className={isSelected ? "drop-shadow-lg" : ""}
-                    fill={fillColor}
-                  />
-                );
-              })}
-            </Bar>
           </BarChart>
         </ChartContainer>
       </div>
@@ -194,15 +188,11 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
       <div className="flex items-center justify-center gap-8 mt-6 pt-4 border-t border-gray-100">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-blue-500"></div>
-          <span className="text-sm font-medium text-gray-700">
-            Evaluaciones Completadas
-          </span>
+          <span className="text-sm font-medium text-gray-700">Evaluaciones Completadas</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-gray-300"></div>
-          <span className="text-sm font-medium text-gray-700">
-            Evaluaciones Pendientes
-          </span>
+          <span className="text-sm font-medium text-gray-700">Evaluaciones Pendientes</span>
         </div>
       </div>
     </>
