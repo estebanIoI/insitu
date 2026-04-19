@@ -657,7 +657,6 @@ class CfgTRepository {
 				ID_ESTUDIANTE: true,
 				DOCENTE: true,
 				COD_ASIGNATURA: true,
-				ASIGNATURA: true,
 				NOM_PROGRAMA: true,
 				SEMESTRE: true
 			}
@@ -675,7 +674,7 @@ class CfgTRepository {
 				if (!lookupMapDocente.has(key)) {
 					lookupMapDocente.set(key, {
 						nombre_docente: v.DOCENTE,
-						nombre_materia: v.ASIGNATURA,
+						nombre_materia: null,
 						programas: [],
 						semestres: []
 					});
@@ -690,8 +689,8 @@ class CfgTRepository {
 				const key = `${v.ID_ESTUDIANTE}_${v.COD_ASIGNATURA}`;
 				if (!lookupMapEstudiante.has(key)) {
 					lookupMapEstudiante.set(key, {
-						nombre_docente: v.DOCENTE, // Still include docente name for context
-						nombre_materia: v.ASIGNATURA,
+						nombre_docente: v.DOCENTE,
+						nombre_materia: null,
 						programas: [],
 						semestres: []
 					});
