@@ -1,11 +1,10 @@
 // Multi-DB Prisma clients setup
 // Local (migrations + write), Remote Auth (read-only), Remote User (read-only)
 
-// NOTE: Generated Prisma client outputs reside in this same directory (./local, ./auth, ./user)
-// The previous relative paths pointed one level up incorrectly (../prisma/*) causing module resolution errors.
-const { PrismaClient: LocalPrismaClient } = require('./local');
-const { PrismaClient: AuthPrismaClient } = require('./auth');
-const { PrismaClient: UserPrismaClient } = require('./user');
+// Clients generated at build time via prisma generate into ./generated/*
+const { PrismaClient: LocalPrismaClient } = require('./generated/local');
+const { PrismaClient: AuthPrismaClient } = require('./generated/auth');
+const { PrismaClient: UserPrismaClient } = require('./generated/user');
 
 // Helper to wrap a Prisma client and block mutating operations
 function makeReadOnly(prisma, label) {
