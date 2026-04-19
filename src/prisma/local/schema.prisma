@@ -1,0 +1,371 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/prisma/local"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model a_e {
+  id                  Int        @id @default(autoincrement())
+  aspecto_id          Int
+  escala_id           Int?
+  es_cmt              Boolean?   @default(true)
+  es_cmt_oblig        Boolean?   @default(false)
+  fecha_creacion      DateTime?  @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime?  @default(now()) @db.Timestamp(0)
+  cfg_a               cfg_a      @relation(fields: [aspecto_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "a_e_ibfk_1")
+  cfg_e               cfg_e?     @relation(fields: [escala_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "a_e_ibfk_2")
+  eval_det            eval_det[]
+
+  @@index([aspecto_id], map: "aspecto_id")
+  @@index([escala_id], map: "escala_id")
+}
+
+model aspecto {
+  id                  Int       @id @default(autoincrement())
+  nombre              String    @db.VarChar(100)
+  descripcion         String?   @db.Text
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  ca_map              ca_map[]
+}
+
+model ca_map {
+  id                  Int       @id @default(autoincrement())
+  categoria_id        Int
+  aspecto_id          Int
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  cat_a               cat_a     @relation(fields: [categoria_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ca_map_ibfk_1")
+  aspecto             aspecto   @relation(fields: [aspecto_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ca_map_ibfk_2")
+  cfg_a               cfg_a[]
+
+  @@index([aspecto_id], map: "aspecto_id")
+  @@index([categoria_id], map: "categoria_id")
+}
+
+model cat_a {
+  id                  Int       @id @default(autoincrement())
+  nombre              String    @db.VarChar(100)
+  descripcion         String?   @db.Text
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  ca_map              ca_map[]
+}
+
+model cat_e {
+  id                  Int       @id @default(autoincrement())
+  nombre              String    @db.VarChar(100)
+  descripcion         String?   @db.Text
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  ce_map              ce_map[]
+}
+
+model cat_t {
+  id                  Int       @id @default(autoincrement())
+  nombre              String    @db.VarChar(100)
+  descripcion         String?   @db.Text
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  ct_map              ct_map[]
+}
+
+model ce_map {
+  id                  Int       @id @default(autoincrement())
+  categoria_id        Int
+  escala_id           Int
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  cat_e               cat_e     @relation(fields: [categoria_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ce_map_ibfk_1")
+  escala              escala    @relation(fields: [escala_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ce_map_ibfk_2")
+  cfg_e               cfg_e[]
+
+  @@index([categoria_id], map: "categoria_id")
+  @@index([escala_id], map: "escala_id")
+}
+
+model cfg_a {
+  id                  Int       @id @default(autoincrement())
+  cfg_t_id            Int
+  aspecto_id          Int
+  orden               Decimal   @db.Decimal(5, 2)
+  es_activo           Boolean?  @default(true)
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  a_e                 a_e[]
+  cfg_t               cfg_t     @relation(fields: [cfg_t_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cfg_a_ibfk_1")
+  ca_map              ca_map    @relation(fields: [aspecto_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cfg_a_ibfk_2")
+
+  @@index([aspecto_id], map: "aspecto_id")
+  @@index([cfg_t_id], map: "cfg_t_id")
+}
+
+model cfg_e {
+  id                  Int       @id @default(autoincrement())
+  cfg_t_id            Int
+  escala_id           Int
+  puntaje             Decimal   @db.Decimal(3, 2)
+  orden               Decimal   @db.Decimal(5, 2)
+  es_activo           Boolean?  @default(true)
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  a_e                 a_e[]
+  cfg_t               cfg_t     @relation(fields: [cfg_t_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cfg_e_ibfk_1")
+  ce_map              ce_map    @relation(fields: [escala_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cfg_e_ibfk_2")
+
+  @@index([cfg_t_id], map: "cfg_t_id")
+  @@index([escala_id], map: "escala_id")
+}
+
+model cfg_t {
+  id                                         Int           @id @default(autoincrement())
+  tipo_id                                    Int
+  genera_autoeval                            Boolean?      @default(false)
+  autoeval_tipo_form_id                      Int?
+  tipo_form_id                               Int
+  fecha_inicio                               DateTime      @db.Date
+  fecha_fin                                  DateTime      @db.Date
+  es_cmt_gen                                 Boolean?      @default(true)
+  es_cmt_gen_oblig                           Boolean?      @default(false)
+  es_activo                                  Boolean?      @default(false)
+  fecha_creacion                             DateTime?     @default(now()) @db.Timestamp(0)
+  fecha_actualizacion                        DateTime?     @default(now()) @db.Timestamp(0)
+  cfg_a                                      cfg_a[]
+  cfg_e                                      cfg_e[]
+  ct_map                                     ct_map        @relation(fields: [tipo_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cfg_t_ibfk_1")
+  tipo_form                                  tipo_form     @relation(fields: [tipo_form_id], references: [id], onUpdate: NoAction, map: "cfg_t_ibfk_2")
+  cfg_t_rel_cfg_t_rel_cfg_eval_idTocfg_t     cfg_t_rel?    @relation("cfg_t_rel_cfg_eval_idTocfg_t")
+  cfg_t_rel_cfg_t_rel_cfg_autoeval_idTocfg_t cfg_t_rel?    @relation("cfg_t_rel_cfg_autoeval_idTocfg_t")
+  cfg_t_rol                                  cfg_t_rol[]
+  cfg_t_scope                                cfg_t_scope[]
+  cmt_ai                                     cmt_ai[]
+  eval                                       eval[]
+
+  @@index([tipo_form_id], map: "tipo_form_id")
+  @@index([tipo_id], map: "tipo_id")
+}
+
+model cfg_t_scope {
+  id          Int     @id @default(autoincrement())
+  cfg_t_id    Int
+  periodo_id  Int
+  sede_id     Int?
+  programa_id Int?
+  semestre_id Int?
+  grupo_id    Int?
+  cfg_t       cfg_t   @relation(fields: [cfg_t_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cfg_t_scope_ibfk_1")
+  periodo     peri    @relation(fields: [periodo_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_scope_periodo")
+  sede        sede?   @relation(fields: [sede_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_scope_sede")
+  programa    prog?   @relation(fields: [programa_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_scope_programa")
+  smstre      smstre? @relation(fields: [semestre_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cfg_t_scope_ibfk_5")
+  grp         grp?    @relation(fields: [grupo_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cfg_t_scope_ibfk_6")
+
+  @@index([cfg_t_id], map: "cfg_t_id")
+  @@index([grupo_id], map: "grupo_id")
+  @@index([periodo_id], map: "periodo_id")
+  @@index([programa_id], map: "programa_id")
+  @@index([sede_id], map: "sede_id")
+  @@index([semestre_id], map: "semestre_id")
+}
+
+model cfg_t_rol {
+  id                  Int       @id @default(autoincrement())
+  cfg_t_id            Int
+  rol_mix_id          Int
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  cfg_t               cfg_t     @relation(fields: [cfg_t_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cfg_t_rol_ibfk_1")
+  rol_mix             rol_mix   @relation(fields: [rol_mix_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cfg_t_rol_ibfk_2")
+
+  @@unique([cfg_t_id, rol_mix_id], map: "cfg_t_id")
+  @@index([rol_mix_id], map: "rol_mix_id")
+}
+
+model cmt_ai {
+  id                  Int       @id @default(autoincrement())
+  cfg_t_id            Int
+  aspecto_id          Int
+  conclusion          String?   @db.Text
+  conclusion_gen      String?   @db.Text
+  fortaleza           Json?
+  debilidad           Json?
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  cfg_t               cfg_t     @relation(fields: [cfg_t_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cmt_ai_ibfk_1")
+
+  @@index([cfg_t_id], map: "cfg_t_id")
+}
+
+model ct_map {
+  id                  Int       @id @default(autoincrement())
+  categoria_id        Int
+  tipo_id             Int
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  cfg_t               cfg_t[]
+  cat_t               cat_t     @relation(fields: [categoria_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ct_map_ibfk_1")
+  tipo                tipo      @relation(fields: [tipo_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ct_map_ibfk_2")
+
+  @@index([categoria_id], map: "categoria_id")
+  @@index([tipo_id], map: "tipo_id")
+}
+
+model escala {
+  id                  Int       @id @default(autoincrement())
+  sigla               String    @db.Char(5)
+  nombre              String    @db.VarChar(100)
+  descripcion         String?   @db.Text
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  ce_map              ce_map[]
+}
+
+model eval {
+  id                  Int        @id @default(autoincrement())
+  id_configuracion    Int
+  estudiante          String?    @db.VarChar(10)
+  docente             String?    @db.VarChar(15)
+  codigo_materia      String?    @db.VarChar(10)
+  cmt_gen             String?    @db.Text
+  fecha_creacion      DateTime?  @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime?  @default(now()) @db.Timestamp(0)
+  cfg_t               cfg_t      @relation(fields: [id_configuracion], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "eval_ibfk_1")
+  eval_det            eval_det[]
+
+  @@index([id_configuracion], map: "id_configuracion")
+}
+
+model eval_det {
+  id                  Int       @id @default(autoincrement())
+  eval_id             Int
+  a_e_id              Int
+  cmt                 String?   @db.Text
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  eval                eval      @relation(fields: [eval_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "eval_det_ibfk_1")
+  a_e                 a_e       @relation(fields: [a_e_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "eval_det_ibfk_2")
+
+  @@index([a_e_id], map: "a_e_id")
+  @@index([eval_id], map: "eval_id")
+}
+
+model prog {
+  id          Int           @id @default(autoincrement())
+  nombre      String        @unique(map: "nombre") @db.VarChar(100)
+  cfg_t_scope cfg_t_scope[]
+  user_prog   user_prog[]
+}
+
+model rfh_tkn {
+  id                  Int       @id @default(autoincrement())
+  jti                 String    @unique(map: "jti") @db.VarChar(255)
+  user_id             Int
+  token               String    @db.VarChar(255)
+  fecha_expiracion    DateTime  @db.DateTime(0)
+  es_revocado         Boolean   @default(false)
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model rol {
+  id                  Int        @id @default(autoincrement())
+  nombre              String     @unique(map: "nombre") @db.VarChar(100)
+  fecha_creacion      DateTime?  @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime?  @default(now()) @db.Timestamp(0)
+  user_rol            user_rol[]
+}
+
+model rol_mix {
+  id            Int            @id @default(autoincrement())
+  rol_origen_id Int?
+  nombre        String         @db.VarChar(100)
+  origen        rol_mix_origen
+  cfg_t_rol     cfg_t_rol[]
+
+  @@unique([rol_origen_id, origen], map: "rol_origen_id")
+}
+
+model sede {
+  id          Int           @id @default(autoincrement())
+  nombre      String        @unique(map: "nombre") @db.VarChar(100)
+  cfg_t_scope cfg_t_scope[]
+}
+
+model tipo {
+  id                  Int       @id @default(autoincrement())
+  nombre              String    @db.VarChar(100)
+  descripcion         String?   @db.Text
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  ct_map              ct_map[]
+}
+
+model tipo_form {
+  id                  Int       @id @default(autoincrement())
+  nombre              String    @db.VarChar(100)
+  descripcion         String?   @db.Text
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  cfg_t               cfg_t[]
+}
+
+model user_prog {
+  id                  Int       @id @default(autoincrement())
+  user_rol_id         Int
+  prog_id             Int
+  fecha_creacion      DateTime? @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(0)
+  user_rol            user_rol  @relation(fields: [user_rol_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_prog_ibfk_1")
+  prog                prog      @relation(fields: [prog_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_prog_ibfk_2")
+
+  @@index([prog_id], map: "prog_id")
+  @@index([user_rol_id], map: "user_rol_id")
+}
+
+model user_rol {
+  id                  Int         @id @default(autoincrement())
+  user_id             Int
+  rol_id              Int
+  fecha_creacion      DateTime?   @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime?   @default(now()) @db.Timestamp(0)
+  user_prog           user_prog[]
+  rol                 rol         @relation(fields: [rol_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "user_rol_ibfk_1")
+
+  @@index([rol_id], map: "rol_id")
+}
+
+model grp {
+  id          Int           @id @default(autoincrement())
+  nombre      String        @unique(map: "nombre") @db.VarChar(10)
+  cfg_t_scope cfg_t_scope[]
+}
+
+model peri {
+  id          Int           @id @default(autoincrement())
+  nombre      String        @unique(map: "nombre") @db.VarChar(10)
+  cfg_t_scope cfg_t_scope[]
+}
+
+model smstre {
+  id          Int           @id @default(autoincrement())
+  nombre      String        @unique(map: "nombre") @db.VarChar(100)
+  cfg_t_scope cfg_t_scope[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model cfg_t_rel {
+  id                                     Int   @id @default(autoincrement())
+  cfg_eval_id                            Int   @unique(map: "cfg_eval_id")
+  cfg_autoeval_id                        Int   @unique(map: "cfg_autoeval_id")
+  cfg_t_cfg_t_rel_cfg_eval_idTocfg_t     cfg_t @relation("cfg_t_rel_cfg_eval_idTocfg_t", fields: [cfg_eval_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cfg_t_rel_ibfk_1")
+  cfg_t_cfg_t_rel_cfg_autoeval_idTocfg_t cfg_t @relation("cfg_t_rel_cfg_autoeval_idTocfg_t", fields: [cfg_autoeval_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cfg_t_rel_ibfk_2")
+}
+
+enum rol_mix_origen {
+  APP
+  AUTH
+}

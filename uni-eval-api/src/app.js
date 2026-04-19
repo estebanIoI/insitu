@@ -15,7 +15,7 @@ const app = express();
 // Trust Nginx reverse proxy (Dokploy)
 app.set('trust proxy', 1);
 
-// Middlewares para mi
+// Middlewares
 app.use(cors(corsOptions));
 app.use(helmet());
 app.use(express.json());

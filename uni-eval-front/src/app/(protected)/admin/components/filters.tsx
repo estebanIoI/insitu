@@ -32,7 +32,7 @@ import {
 } from "lucide-react"
 import { configuracionEvaluacionService } from "@/src/api"
 import { filterService } from "@/src/api/services/filter/filter.service"
-import type { ConfiguracionTipo, CfgTScopeItem } from "@/src/api/services/app/cfg-t.service"
+import type { ConfiguracionTipo } from "@/src/api/services/app/cfg-t.service"
 import type { ApiResponse, FiltrosState } from "../types"
 
 // ============================================================================
@@ -219,7 +219,7 @@ export default function Filtros({
   onLimpiarFiltros,
   loading = false,
 }: FiltrosProps) {
-  const lastAppliedScopeKeyRef = useRef<string>('')
+  const hasInitializedRef = useRef(false)
   const [configuraciones, setConfiguraciones] = useState<ConfiguracionTipo[]>([])
   const [periodos, setPeriodos] = useState<string[]>([])
   const [sedes, setSedes] = useState<string[]>([])
@@ -229,22 +229,9 @@ export default function Filtros({
   const [loadingData, setLoadingData] = useState(true)
   const [configOpen, setConfigOpen] = useState(false)
 
-  const aplicarScopeEnFiltros = useCallback(
-    (baseFiltros: FiltrosState, scope?: CfgTScopeItem): FiltrosState => {
-      return {
-        ...baseFiltros,
-        periodoSeleccionado: scope?.periodo_nombre ?? '',
-        sedeSeleccionada: scope?.sede_nombre ?? '',
-        programaSeleccionado: scope?.programa_nombre ?? '',
-        semestreSeleccionado: scope?.semestre_nombre ?? '',
-        grupoSeleccionado: scope?.grupo_nombre ?? '',
-      }
-    },
-    []
-  )
-
-  // Cargar datos iniciales
+  // Carga inicial única: auto-selecciona config activa y período más reciente
   useEffect(() => {
+    if (hasInitializedRef.current) return
     let mounted = true
 
     const cargarDatosIniciales = async () => {
@@ -270,7 +257,6 @@ export default function Filtros({
         setConfiguraciones(configuracionesData)
         setPeriodos(periodosData)
 
-        // Aplicar configuración y período por defecto
         const nuevosFiltros = { ...filtros }
         let hasChanges = false
 
@@ -288,22 +274,7 @@ export default function Filtros({
           }
         }
 
-        const configInicial = configuracionesData.find(
-          (config) => config.id === nuevosFiltros.configuracionSeleccionada
-        )
-        const filtrosConScope = aplicarScopeEnFiltros(nuevosFiltros, configInicial?.scopes?.[0])
-
-        if (
-          filtrosConScope.periodoSeleccionado !== nuevosFiltros.periodoSeleccionado ||
-          filtrosConScope.sedeSeleccionada !== nuevosFiltros.sedeSeleccionada ||
-          filtrosConScope.programaSeleccionado !== nuevosFiltros.programaSeleccionado ||
-          filtrosConScope.semestreSeleccionado !== nuevosFiltros.semestreSeleccionado ||
-          filtrosConScope.grupoSeleccionado !== nuevosFiltros.grupoSeleccionado
-        ) {
-          Object.assign(nuevosFiltros, filtrosConScope)
-          hasChanges = true
-        }
-
+        hasInitializedRef.current = true
         if (hasChanges && mounted) {
           onFiltrosChange(nuevosFiltros)
         }
@@ -311,6 +282,7 @@ export default function Filtros({
         logger.debug('Filtros', 'Datos iniciales cargados', { configuracionesData, periodosData })
       } catch (error) {
         logger.error('Filtros', 'Error crítico cargando datos iniciales', error)
+        hasInitializedRef.current = true
       } finally {
         if (mounted) setLoadingData(false)
       }
@@ -321,7 +293,8 @@ export default function Filtros({
     return () => {
       mounted = false
     }
-  }, [onFiltrosChange, filtros.configuracionSeleccionada, filtros.periodoSeleccionado])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Cargar opciones dinámicas (sedes y programas)
   useEffect(() => {
@@ -366,7 +339,7 @@ export default function Filtros({
     return () => {
       mounted = false
     }
-  }, [filtros.sedeSeleccionada, filtros.periodoSeleccionado, filtros.programaSeleccionado, onFiltrosChange])
+  }, [filtros.sedeSeleccionada, filtros.periodoSeleccionado, filtros.programaSeleccionado])
 
   // Cargar semestres y grupos
   useEffect(() => {
@@ -420,53 +393,7 @@ export default function Filtros({
     return () => {
       mounted = false
     }
-  }, [filtros.programaSeleccionado, filtros.semestreSeleccionado, filtros.sedeSeleccionada, filtros.periodoSeleccionado, onFiltrosChange])
-
-  // Aplicar scope apenas llegue de la configuración seleccionada
-  useEffect(() => {
-    if (!filtros.configuracionSeleccionada || !configuraciones.length) {
-      lastAppliedScopeKeyRef.current = ''
-      return
-    }
-
-    const configSeleccionada = configuraciones.find(
-      (config) => config.id === filtros.configuracionSeleccionada
-    )
-    const scope = configSeleccionada?.scopes?.[0]
-
-    if (!configSeleccionada) {
-      lastAppliedScopeKeyRef.current = 'no-config'
-      return
-    }
-
-    const scopeKey = [
-      configSeleccionada.id,
-      scope?.id ?? 'no-scope',
-      scope?.periodo_nombre ?? '',
-      scope?.sede_nombre ?? '',
-      scope?.programa_nombre ?? '',
-      scope?.semestre_nombre ?? '',
-      scope?.grupo_nombre ?? '',
-    ].join('|')
-
-    if (lastAppliedScopeKeyRef.current === scopeKey) return
-
-    const nuevosFiltros = aplicarScopeEnFiltros(filtros, scope)
-
-    const huboCambios =
-      nuevosFiltros.periodoSeleccionado !== filtros.periodoSeleccionado ||
-      nuevosFiltros.sedeSeleccionada !== filtros.sedeSeleccionada ||
-      nuevosFiltros.programaSeleccionado !== filtros.programaSeleccionado ||
-      nuevosFiltros.semestreSeleccionado !== filtros.semestreSeleccionado ||
-      nuevosFiltros.grupoSeleccionado !== filtros.grupoSeleccionado
-
-    if (huboCambios) {
-      lastAppliedScopeKeyRef.current = scopeKey
-      onFiltrosChange(nuevosFiltros)
-    } else {
-      lastAppliedScopeKeyRef.current = scopeKey
-    }
-  }, [filtros, configuraciones, onFiltrosChange, aplicarScopeEnFiltros])
+  }, [filtros.programaSeleccionado, filtros.semestreSeleccionado, filtros.sedeSeleccionada, filtros.periodoSeleccionado])
 
   // Handlers
   const handleFiltroChange = useCallback(
@@ -580,14 +507,18 @@ export default function Filtros({
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-slate-600">Período</label>
+              <label className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
+                <Calendar className="h-3 w-3" />
+                Período
+                <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-semibold text-blue-500">auto</span>
+              </label>
               <Select
                 value={filtros.periodoSeleccionado || undefined}
                 onValueChange={(v) => handleFiltroChange('periodoSeleccionado', v)}
                 disabled={loading}
               >
-                <SelectTrigger className="h-8 border-slate-200 bg-white text-xs transition-colors hover:border-slate-300">
-                  <SelectValue placeholder="Selecciona" />
+                <SelectTrigger className="h-8 border-blue-200 bg-blue-50/30 text-xs transition-colors hover:border-blue-300 focus-visible:ring-blue-200">
+                  <SelectValue placeholder="Cargando..." />
                 </SelectTrigger>
                 <SelectContent className="border-slate-200">
                   {periodos.map((periodo) => (
