@@ -164,12 +164,12 @@ export default function EvaluacionCard({
       transition={{ delay: index * 0.1 }}
       className="h-full"
     >
-      <Card className="relative h-full rounded-3xl border-2 bg-white shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
+      <Card className="relative h-full rounded-2xl sm:rounded-3xl border-2 bg-white shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
         {/* ---------- Header ---------- */}
-        <CardHeader className="space-y-3 sm:space-y-4 pb-3 sm:pb-4 px-4 sm:px-6">
+        <CardHeader className="space-y-2 sm:space-y-4 pb-2 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
           {/* Titulo */}
-          <div className="flex flex-col items-center gap-2 text-center">
-            <Badge className={tipoFormColor}>
+          <div className="flex flex-col items-center gap-1.5 sm:gap-2 text-center">
+            <Badge className={`text-xs ${tipoFormColor}`}>
               {tipoFormNombre}
             </Badge>
             <CardTitle className="text-base sm:text-lg md:text-2xl font-bold leading-tight break-words">
@@ -248,9 +248,9 @@ export default function EvaluacionCard({
         </CardHeader>
 
         {/* ---------- Body ---------- */}
-        <CardContent className="space-y-4 sm:space-y-5 px-4 sm:px-5 md:px-6 pb-4 sm:pb-6">
+        <CardContent className="space-y-3 sm:space-y-5 px-3 sm:px-5 md:px-6 pb-4 sm:pb-6">
           {/* Fechas (VERTICALES) */}
-          <div className="grid grid-cols-1 gap-3 text-sm md:text-base">
+          <div className="grid grid-cols-1 gap-2 sm:gap-3 text-sm md:text-base">
             <InfoItem
               icon={<Calendar className="w-5 h-5" />}
               label="Inicio"
@@ -270,34 +270,30 @@ export default function EvaluacionCard({
 
           {/* Progreso */}
           {vigente && (
-            <div className="space-y-2 bg-muted/30 p-4 rounded-2xl">
-              <div className="flex justify-between text-sm md:text-base font-semibold">
+            <div className="space-y-1.5 sm:space-y-2 bg-muted/30 p-3 sm:p-4 rounded-2xl">
+              <div className="flex justify-between text-xs sm:text-sm font-semibold">
                 <span className="text-muted-foreground">Tiempo transcurrido</span>
                 <span className="text-primary">{Math.round(progreso)}%</span>
               </div>
-
-              <Progress value={progreso} className="h-2.5" />
+              <Progress value={progreso} className="h-2" />
             </div>
           )}
 
           {/* Tiempo restante */}
           {vigente && tiempo.texto !== "Finalizada" && (
-            <div className="flex items-center gap-3 rounded-2xl border-2 p-4 bg-gradient-to-r from-muted/40 to-muted/20">
+            <div className="flex items-center gap-2 sm:gap-3 rounded-2xl border-2 p-3 sm:p-4 bg-gradient-to-r from-muted/40 to-muted/20">
               {tiempo.dias === 0 && tiempo.horas < 24 ? (
-                <div className="p-2 rounded-full bg-red-100">
-                  <AlertTriangle className="text-red-600 w-5 h-5" />
+                <div className="p-1.5 sm:p-2 rounded-full bg-red-100 flex-shrink-0">
+                  <AlertTriangle className="text-red-600 w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
               ) : (
-                <div className="p-2 rounded-full bg-primary/10">
-                  <Timer className="text-primary w-5 h-5" />
+                <div className="p-1.5 sm:p-2 rounded-full bg-primary/10 flex-shrink-0">
+                  <Timer className="text-primary w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
               )}
-
               <div className="flex-1 min-w-0">
-                <p className="text-xs md:text-sm text-muted-foreground font-medium">
-                  Tiempo restante
-                </p>
-                <p className="font-bold text-base md:text-lg truncate">{tiempo.texto}</p>
+                <p className="text-xs text-muted-foreground font-medium">Tiempo restante</p>
+                <p className="font-bold text-sm sm:text-base truncate">{tiempo.texto}</p>
               </div>
             </div>
           )}
@@ -305,22 +301,20 @@ export default function EvaluacionCard({
           {/* CTA */}
           <Button
             size="lg"
-            className={`w-full rounded-2xl text-base md:text-lg font-bold py-6 md:py-7 shadow-lg hover:shadow-xl transition-all ${
-              esFinalizada
-                ? "bg-green-600 hover:bg-green-600 text-white"
-                : ""
+            className={`w-full rounded-2xl text-sm sm:text-base font-bold py-5 sm:py-6 shadow-lg hover:shadow-xl transition-all ${
+              esFinalizada ? "bg-green-600 hover:bg-green-600 text-white" : ""
             }`}
             disabled={esFinalizada || (!vigente && !tieneEvaluaciones)}
             onClick={() => onIniciar(configuracion)}
           >
             {esFinalizada ? (
-              <div className="flex items-center gap-2 md:gap-3">
-                <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Respondida</span>
               </div>
             ) : tieneEvaluaciones ? (
-              <div className="flex items-center gap-2 md:gap-3">
-                <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>
                   {tipoFormId === 1 ? "Iniciar evaluación" :
                    tipoFormId === 2 ? "Responder encuesta" :
@@ -355,11 +349,11 @@ function InfoItem({
   value: string;
 }) {
   return (
-    <div className="flex gap-3 items-center rounded-xl border-2 bg-gradient-to-r from-muted/40 to-muted/20 p-3 md:p-4 hover:shadow-md transition-shadow">
-      <div className="text-muted-foreground flex-shrink-0">{icon}</div>
+    <div className="flex gap-2 sm:gap-3 items-center rounded-xl border-2 bg-gradient-to-r from-muted/40 to-muted/20 p-2.5 sm:p-3 md:p-4 hover:shadow-md transition-shadow">
+      <div className="text-muted-foreground flex-shrink-0 [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-5 sm:[&>svg]:h-5">{icon}</div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs md:text-sm text-muted-foreground font-medium">{label}</p>
-        <p className="font-bold text-sm md:text-base truncate">{value}</p>
+        <p className="text-xs text-muted-foreground font-medium">{label}</p>
+        <p className="font-bold text-sm truncate">{value}</p>
       </div>
     </div>
   );

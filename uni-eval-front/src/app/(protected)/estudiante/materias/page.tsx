@@ -37,16 +37,16 @@ export default function MateriasPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
 
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-blue-600" />
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex-shrink-0" />
             Mis Materias
           </h1>
           {perfil && (
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-gray-500 text-xs sm:text-sm mt-1 truncate">
               {capitalize(perfil.nombre_completo)}
             </p>
           )}
@@ -59,33 +59,33 @@ export default function MateriasPage() {
             <Skeleton className="h-16 w-full rounded-xl" />
           </div>
         ) : perfil ? (
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-white rounded-xl border p-3 flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-blue-600 flex-shrink-0" />
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-5 sm:mb-6">
+            <div className="bg-white rounded-xl border p-2.5 sm:p-3 flex items-start gap-2">
+              <GraduationCap className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="min-w-0">
-                <p className="text-xs text-gray-500">Programa</p>
-                <p className="text-sm font-medium truncate">{perfil.programa || "—"}</p>
+                <p className="text-xs text-gray-400">Programa</p>
+                <p className="text-xs sm:text-sm font-medium leading-snug">{perfil.programa || "—"}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border p-3 flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-blue-600 flex-shrink-0" />
+            <div className="bg-white rounded-xl border p-2.5 sm:p-3 flex items-start gap-2">
+              <MapPin className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="min-w-0">
-                <p className="text-xs text-gray-500">Sede</p>
-                <p className="text-sm font-medium truncate">{perfil.sede || "—"}</p>
+                <p className="text-xs text-gray-400">Sede</p>
+                <p className="text-xs sm:text-sm font-medium leading-snug">{perfil.sede || "—"}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border p-3 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0" />
+            <div className="bg-white rounded-xl border p-2.5 sm:p-3 flex items-start gap-2">
+              <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="min-w-0">
-                <p className="text-xs text-gray-500">Periodo</p>
-                <p className="text-sm font-medium">{perfil.periodo || "—"}</p>
+                <p className="text-xs text-gray-400">Periodo</p>
+                <p className="text-xs sm:text-sm font-medium">{perfil.periodo || "—"}</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border p-3 flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-blue-600 flex-shrink-0" />
+            <div className="bg-white rounded-xl border p-2.5 sm:p-3 flex items-start gap-2">
+              <BookOpen className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="min-w-0">
-                <p className="text-xs text-gray-500">Semestre</p>
-                <p className="text-sm font-medium truncate">{perfil.semestre || "—"}</p>
+                <p className="text-xs text-gray-400">Semestre</p>
+                <p className="text-xs sm:text-sm font-medium">{perfil.semestre || "—"}</p>
               </div>
             </div>
           </div>
@@ -103,31 +103,31 @@ export default function MateriasPage() {
             {error}
           </div>
         ) : perfil?.materias && perfil.materias.length > 0 ? (
-          <div className="space-y-3">
-            <p className="text-sm font-medium text-gray-500">
+          <div className="space-y-2 sm:space-y-3">
+            <p className="text-xs sm:text-sm font-medium text-gray-400">
               {perfil.materias.length} materia{perfil.materias.length !== 1 ? "s" : ""} registrada{perfil.materias.length !== 1 ? "s" : ""}
             </p>
             {perfil.materias.map((m, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl border p-4 flex items-start justify-between gap-3"
+                className="bg-white rounded-xl border p-3 sm:p-4 flex items-start justify-between gap-2 sm:gap-3"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-gray-900">
-                    {m.nombre || `Materia ${m.codigo}`}
+                  <p className="font-semibold text-xs sm:text-sm text-gray-900 leading-snug">
+                    {m.nombre || `Código ${m.codigo}`}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">Código: {m.codigo}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">#{m.codigo}</p>
                   {m.docente?.nombre && (
-                    <div className="flex items-center gap-1 mt-2">
-                      <User className="h-3 w-3 text-gray-400" />
-                      <p className="text-xs text-gray-500">
+                    <div className="flex items-center gap-1 mt-1.5">
+                      <User className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                      <p className="text-xs text-gray-500 truncate">
                         {capitalize(m.docente.nombre)}
                       </p>
                     </div>
                   )}
                 </div>
                 {m.semestre && (
-                  <Badge variant="outline" className="text-xs flex-shrink-0">
+                  <Badge variant="outline" className="text-xs flex-shrink-0 whitespace-nowrap">
                     {m.semestre}
                   </Badge>
                 )}

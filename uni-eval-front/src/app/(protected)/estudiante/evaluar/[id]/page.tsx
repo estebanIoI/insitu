@@ -293,39 +293,53 @@ export default function EvaluarDocentePage({ params }: { params: Promise<{ id: s
   if (!config) return null;
 
   return (
-    <div className="py-4 sm:py-8 px-3 sm:px-4">
-      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+    <div className="py-3 sm:py-8 px-3 sm:px-4">
+      {/* BARRA PROGRESO STICKY - solo visible en mobile */}
+      <div className="fixed top-16 left-0 right-0 z-40 bg-white/95 backdrop-blur border-b px-3 py-2 flex items-center gap-3 sm:hidden shadow-sm">
+        <span className="text-xs text-gray-500 font-medium whitespace-nowrap">{respondidos}/{totalAspectos}</span>
+        <div className="flex-1">
+          <Progress value={progreso} className="h-1.5" />
+        </div>
+        <span className="text-xs font-bold text-blue-600 whitespace-nowrap">{progreso}%</span>
+      </div>
+
+      <div className="max-w-5xl mx-auto space-y-3 sm:space-y-6 mt-8 sm:mt-0">
 
         {/* HEADER PRINCIPAL */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="rounded-3xl shadow-xl border-0">
+          <Card className="rounded-2xl sm:rounded-3xl shadow-xl border-0">
             <CardContent className="p-4 sm:p-6 md:p-8">
-
-                {/* INFO IZQUIERDA */}
-                <div className="space-y-4">
-
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight">
-                    {config?.tipo_evaluacion?.tipo?.nombre || "Evaluación docente"}
-                  </h1>
-
-                  <div className="flex items-start gap-2 text-gray-600 font-medium text-sm sm:text-base">
-                    <BookOpen className="w-4 h-4" />
-                    <span>{materia || "Materia no disponible"}</span>
+              <div className="space-y-2 sm:space-y-4">
+                <h1 className="text-lg sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight">
+                  {config?.tipo_evaluacion?.tipo?.nombre || "Evaluación docente"}
+                </h1>
+                {materia && (
+                  <div className="flex items-start gap-2 text-gray-600 font-medium text-sm">
+                    <BookOpen className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span className="leading-snug">{materia}</span>
                   </div>
-
-                  <div className="flex items-start gap-2 text-gray-600 font-medium text-sm sm:text-base">
-                    <User className="w-4 h-4" />
-                    <span>{docente || "Docente no disponible"}</span>
+                )}
+                {docente && (
+                  <div className="flex items-start gap-2 text-gray-600 font-medium text-sm">
+                    <User className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span className="leading-snug">{docente}</span>
                   </div>
-
+                )}
+                {/* Progreso desktop */}
+                <div className="hidden sm:block space-y-1 pt-2">
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>{respondidos} de {totalAspectos} respondidos</span>
+                    <span className="font-semibold text-blue-600">{progreso}%</span>
+                  </div>
+                  <Progress value={progreso} className="h-2" />
+                </div>
               </div>
-
             </CardContent>
           </Card>
         </motion.div>
 
         {/* FORM */}
-        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-4">
           {config.aspectos.map((aspecto, index) => {
             const abierto = openAspecto === aspecto.id;
             const opcionSeleccionadaId = selecciones[aspecto.id];
@@ -344,23 +358,24 @@ export default function EvaluarDocentePage({ params }: { params: Promise<{ id: s
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="rounded-2xl shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                <Card className="rounded-xl sm:rounded-2xl shadow-sm sm:shadow-md hover:shadow-lg transition-shadow overflow-hidden">
 
                   <button
                     type="button"
-                    className="w-full text-left p-4 sm:p-5 flex justify-between items-start gap-3"
+                    className="w-full text-left p-3 sm:p-5 flex justify-between items-start gap-2 sm:gap-3"
                     onClick={() => setOpenAspecto(abierto ? null : aspecto.id)}
                   >
-                    <div>
-                      <h3 className="font-semibold text-base sm:text-lg leading-snug">{aspecto.nombre}</h3>
-                      <p className="text-xs sm:text-sm text-gray-500 mt-1">{aspecto.descripcion}</p>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm sm:text-base leading-snug">{aspecto.nombre}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5 sm:mt-1 leading-snug">{aspecto.descripcion}</p>
                     </div>
-
-                    {abierto ? <ChevronUp /> : <ChevronDown />}
+                    <div className="flex-shrink-0 mt-0.5">
+                      {abierto ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </div>
                   </button>
 
                   {abierto && (
-                    <CardContent className="border-t space-y-4 sm:space-y-6 p-4 sm:p-6">
+                    <CardContent className="border-t space-y-3 sm:space-y-6 p-3 sm:p-6">
 
                       {esSinEscala ? (
                         <div className="space-y-2">
@@ -389,16 +404,17 @@ export default function EvaluarDocentePage({ params }: { params: Promise<{ id: s
                             <Label
                               key={op.id}
                               htmlFor={`op-${op.id}`}
-                              className="flex items-center justify-between border rounded-xl p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition gap-3"
+                              className="flex items-center justify-between border rounded-xl p-2.5 sm:p-4 cursor-pointer hover:bg-gray-50 transition gap-2 sm:gap-3"
                             >
-                              <div>
-                                <p className="font-medium text-sm sm:text-base">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-xs sm:text-sm leading-snug">
                                   {op.sigla} - {op.nombre}
                                 </p>
-                                <p className="text-xs text-gray-500">{op.descripcion}</p>
+                                {op.descripcion && (
+                                  <p className="text-xs text-gray-400 mt-0.5 leading-snug">{op.descripcion}</p>
+                                )}
                               </div>
-
-                              <RadioGroupItem value={String(op.id)} id={`op-${op.id}`} />
+                              <RadioGroupItem value={String(op.id)} id={`op-${op.id}`} className="flex-shrink-0" />
                             </Label>
                           ))}
                         </RadioGroup>
@@ -429,8 +445,8 @@ export default function EvaluarDocentePage({ params }: { params: Promise<{ id: s
 
           {/* COMENTARIO GENERAL */}
           {config.es_cmt_gen && (
-            <Card className="rounded-2xl shadow-md">
-              <CardContent className="p-5 space-y-3">
+            <Card className="rounded-xl sm:rounded-2xl shadow-sm sm:shadow-md">
+              <CardContent className="p-3 sm:p-5 space-y-2 sm:space-y-3">
                 <h3 className="font-semibold">Comentario general</h3>
                 <div className="space-y-2">
                   <Textarea

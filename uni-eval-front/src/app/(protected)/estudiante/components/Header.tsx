@@ -216,68 +216,87 @@ export function Header({ onLogout }: HeaderProps) {
 
       {/* Modal Perfil */}
       <Dialog open={showProfileModal} onOpenChange={setShowProfileModal}>
-        <DialogContent className="w-[calc(100vw-1rem)] max-w-[650px] max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Perfil del Estudiante</DialogTitle>
+        <DialogContent className="w-[calc(100vw-1rem)] max-w-lg max-h-[88vh] overflow-y-auto rounded-2xl p-4 sm:p-6">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-base sm:text-lg">Perfil del Estudiante</DialogTitle>
           </DialogHeader>
 
           {loadingPerfil ? (
-            <Skeleton className="h-32 w-full" />
+            <div className="space-y-3">
+              <Skeleton className="h-5 w-3/4" />
+              <Skeleton className="h-4 w-1/4" />
+              <div className="grid grid-cols-2 gap-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-14 rounded-xl" />
+                ))}
+              </div>
+            </div>
           ) : perfilAcademico ? (
-            <div className="space-y-4">
-              <p className="font-bold text-lg">
-                {capitalizeName(perfilAcademico.nombre_completo)}
-              </p>
+            <div className="space-y-3 sm:space-y-4">
+              <div>
+                <p className="font-bold text-base sm:text-lg leading-tight">
+                  {capitalizeName(perfilAcademico.nombre_completo)}
+                </p>
+                {perfilAcademico.semestre && (
+                  <Badge className="mt-1 text-xs">{perfilAcademico.semestre}</Badge>
+                )}
+              </div>
 
-              <Badge>{perfilAcademico.semestre}</Badge>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 gap-2">
                 <InfoItem
-                  icon={<GraduationCap size={18} />}
+                  icon={<GraduationCap size={16} />}
                   label="Programa"
                   value={perfilAcademico.programa}
                 />
 
                 {perfilAcademico.facultad && (
                   <InfoItem
-                    icon={<Building2 size={18} />}
+                    icon={<Building2 size={16} />}
                     label="Facultad"
                     value={perfilAcademico.facultad}
                   />
                 )}
 
                 <InfoItem
-                  icon={<MapPin size={18} />}
+                  icon={<MapPin size={16} />}
                   label="Sede"
                   value={perfilAcademico.sede}
                 />
 
                 <InfoItem
-                  icon={<Calendar size={18} />}
+                  icon={<Calendar size={16} />}
                   label="Periodo"
                   value={perfilAcademico.periodo}
                 />
               </div>
 
-              {perfilAcademico.materias && (
-                <div className="space-y-2">
-                  <p className="font-semibold flex items-center gap-2">
-                    <FileText size={16} /> Materias
+              {perfilAcademico.materias && perfilAcademico.materias.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="font-semibold text-sm flex items-center gap-1.5">
+                    <FileText size={14} />
+                    Materias ({perfilAcademico.materias.length})
                   </p>
 
-                  {perfilAcademico.materias.map((m, i) => (
-                    <div key={i} className="p-2 border rounded-lg text-sm flex justify-between items-center gap-2">
-                      <span>{m.nombre || `Materia ${m.codigo}`}</span>
-                      {m.docente?.nombre && (
-                        <span className="text-xs text-gray-500 truncate">{m.docente.nombre}</span>
-                      )}
-                    </div>
-                  ))}
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {perfilAcademico.materias.map((m, i) => (
+                      <div key={i} className="p-2.5 border rounded-xl text-xs flex justify-between items-start gap-2 bg-gray-50">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 leading-snug">
+                            {m.nombre || `Código ${m.codigo}`}
+                          </p>
+                          {m.docente?.nombre && (
+                            <p className="text-gray-500 truncate mt-0.5">{m.docente.nombre}</p>
+                          )}
+                        </div>
+                        <span className="text-gray-400 font-mono text-xs flex-shrink-0">{m.codigo}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
           ) : (
-            <p>No se pudo cargar el perfil.</p>
+            <p className="text-sm text-gray-500">No se pudo cargar el perfil.</p>
           )}
         </DialogContent>
       </Dialog>
@@ -295,11 +314,11 @@ function InfoItem({
   value: string
 }) {
   return (
-    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-      {icon}
-      <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="font-medium text-sm">{value}</p>
+    <div className="flex items-start gap-2 p-2.5 bg-gray-50 rounded-xl">
+      <div className="flex-shrink-0 mt-0.5 text-gray-500">{icon}</div>
+      <div className="min-w-0">
+        <p className="text-xs text-gray-400">{label}</p>
+        <p className="font-medium text-xs sm:text-sm leading-snug truncate">{value}</p>
       </div>
     </div>
   )
