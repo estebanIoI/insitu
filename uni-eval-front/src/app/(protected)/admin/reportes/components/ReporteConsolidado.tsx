@@ -264,7 +264,7 @@ export default function ReporteConsolidado({ filters }: Props) {
   useEffect(() => {
     cargar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.cfg_t, filters.sede, filters.periodo, filters.semestre]);
+  }, [filters.cfg_t, filters.sede, filters.periodo, filters.semestre, filters.programa, filters.grupo]);
 
   if (loading) {
     return (

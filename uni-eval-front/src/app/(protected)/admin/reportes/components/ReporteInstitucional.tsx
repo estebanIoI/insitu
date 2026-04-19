@@ -335,7 +335,7 @@ export default function ReporteInstitucional({ filters }: Props) {
   useEffect(() => {
     cargar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.cfg_t, filters.periodo]);
+  }, [filters.cfg_t, filters.periodo, filters.sede, filters.programa, filters.semestre, filters.grupo]);
 
   if (loading) {
     return (
