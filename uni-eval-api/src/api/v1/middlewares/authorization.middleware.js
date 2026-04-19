@@ -1,5 +1,5 @@
 const AppError = require('@utils/AppError');
-const { isUserAuthorized, getUserScopesForConfig, getUserActiveScopes } = require('./authorization.service');
+const { isUserAuthorized } = require('./authorization.service');
 
 // Verificación de rol global (APP) como bypass, igual que en auth.middleware
 function hasGlobalRole(user) {
@@ -13,7 +13,7 @@ function hasGlobalRole(user) {
 }
 
 /**
- * Middleware de autorización basado en cfg_t + cfg_t_scope + cfg_t_rol.
+ * Middleware de autorización basado en cfg_t + cfg_t_rol + rol_mix.
  * Debe usarse DESPUÉS de ensureAuth.
  *
  * @param {number|((req: import('express').Request)=>number|null)|null} cfgSelector
@@ -30,28 +30,16 @@ function requireAuthorization(cfgSelector = null) {
 
       // Si el usuario posee rol global, omite validación adicional
       if (hasGlobalRole(req.user)) {
-        const userScopes = await getUserActiveScopes(req.user);
-        req.authorized = { 
-          timestamp: new Date(), 
-          cfgTId: null, 
-          globalBypass: true,
-          userScopes,
-        };
+        req.authorized = { timestamp: new Date(), cfgTId: null, globalBypass: true };
         return next();
       }
 
       // Si el usuario tiene rol 2 en auth O rol 2 en app (docente/director), omite validación
       const authRoleIds = new Set((req.user?.rolesAuthIds || []).map(String));
       const appRoleIds = new Set((req.user?.rolesAppIds || []).map(String));
-      
+
       if (authRoleIds.has('2') || appRoleIds.has('2')) {
-        const userScopes = await getUserActiveScopes(req.user);
-        req.authorized = { 
-          timestamp: new Date(), 
-          cfgTId: null, 
-          role2Bypass: true,
-          userScopes,
-        };
+        req.authorized = { timestamp: new Date(), cfgTId: null, role2Bypass: true };
         return next();
       }
 
@@ -65,14 +53,7 @@ function requireAuthorization(cfgSelector = null) {
         );
       }
 
-      // Obtener scopes específicos para esta config
-      const userScopes = await getUserScopesForConfig(req.user, cfgTId);
-
-      req.authorized = { 
-        timestamp: new Date(), 
-        cfgTId: cfgTId ?? null,
-        userScopes,
-      };
+      req.authorized = { timestamp: new Date(), cfgTId: cfgTId ?? null };
       next();
     } catch (err) {
       next(err instanceof AppError ? err : new AppError('Error en validación de autorización', 500, err));
@@ -93,29 +74,13 @@ function checkAuthorizationOptional(cfgSelector = null) {
 
       // Si el usuario posee rol global, marcar como autorizado
       if (hasGlobalRole(req.user)) {
-        const userScopes = await getUserActiveScopes(req.user);
-        req.authorized = { 
-          timestamp: new Date(), 
-          cfgTId: null, 
-          globalBypass: true,
-          userScopes,
-        };
+        req.authorized = { timestamp: new Date(), cfgTId: null, globalBypass: true };
         return next();
       }
 
       const cfgTId = typeof cfgSelector === 'function' ? cfgSelector(req) : cfgSelector ?? null;
       const ok = await isUserAuthorized(req.user, cfgTId);
-      
-      if (ok) {
-        const userScopes = await getUserScopesForConfig(req.user, cfgTId);
-        req.authorized = { 
-          timestamp: new Date(), 
-          cfgTId: cfgTId ?? null,
-          userScopes,
-        };
-      } else {
-        req.authorized = false;
-      }
+      req.authorized = ok ? { timestamp: new Date(), cfgTId: cfgTId ?? null } : false;
       next();
     } catch {
       req.authorized = false;

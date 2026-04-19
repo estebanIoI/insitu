@@ -1207,16 +1207,7 @@ async function getDocenteAspectMetrics({ cfg_t, docente, codigo_materia, sede, p
 	const cfgId = Number(cfg_t);
 	if (!cfgId) throw new Error('cfg_t is required');
 
-	const cfgRelation = await localPrisma.cfg_t_rel.findFirst({
-		where: {
-			OR: [
-				{ cfg_eval_id: cfgId },
-				{ cfg_autoeval_id: cfgId }
-			]
-		},
-		select: { id: true }
-	});
-	const hasCfgPair = Boolean(cfgRelation);
+	const hasCfgPair = false;
 	const hasVistaFilters = Boolean(sede || periodo || programa || semestre || grupo);
 
 	let scopeByDocente = new Map();
