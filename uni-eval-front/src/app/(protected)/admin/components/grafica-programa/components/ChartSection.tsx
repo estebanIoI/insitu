@@ -7,6 +7,7 @@ import {
   YAxis,
   CartesianGrid,
   Cell,
+  LabelList,
   ResponsiveContainer,
 } from "recharts";
 import { CustomChartTooltip } from "./CustomChartTooltip";
@@ -112,7 +113,7 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
               fill="hsl(221, 83%, 53%)"
               radius={[0, 4, 4, 0]}
               maxBarSize={80}
-              minPointSize={3}
+              minPointSize={8}
               cursor="pointer"
               onClick={(data) =>
                 onBarClick(data.programaCompleto, "completadas")
@@ -121,13 +122,13 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
               {chartData.map((data, index) => {
                 const isSelected = data.programaCompleto === programaSeleccionado;
                 let fillColor = "hsl(221, 83%, 53%)";
-                
+
                 if (isSelected) {
                   fillColor = "hsl(221, 83%, 43%)";
                 } else if (programaSeleccionado && !isSelected) {
                   fillColor = "hsl(215, 16%, 85%)";
                 }
-                
+
                 return (
                   <Cell
                     key={`completadas-${index}`}
@@ -136,6 +137,25 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
                   />
                 );
               })}
+              <LabelList
+                dataKey="completadas"
+                content={(props: any) => {
+                  const { x, y, width, height, value } = props;
+                  if (!value || value === 0 || width > 40) return null;
+                  return (
+                    <text
+                      x={x + width + 6}
+                      y={y + height / 2}
+                      fill="hsl(221, 83%, 40%)"
+                      fontSize={11}
+                      fontWeight={700}
+                      dominantBaseline="middle"
+                    >
+                      ✓{value}
+                    </text>
+                  );
+                }}
+              />
             </Bar>
             <Bar
               dataKey="pendientes"
