@@ -4,6 +4,10 @@ const logger = require('@config/logger_config');
 const { errorResponse } = require('@utils/responseHandler');
 
 const errorHandler = (err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
   const log = logger.withRequest(req);
 
   let statusCode = err.statusCode || 500;
