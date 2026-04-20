@@ -15,6 +15,7 @@ import {
   Settings2,
   Trophy,
   Clock,
+  Eye,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -30,6 +31,7 @@ import { ConfiguracionAspectoView } from "./ConfiguracionAspectoView";
 import { ConfiguracionEscalaView } from "./ConfiguracionEscalaView";
 import { AeView } from "./AeView";
 import { ModalConfiguracionTipo } from "./ModalConfiguracionTipo";
+import { ModalVistaPrevia } from "./ModalVistaPrevia";
 import { type RolMixto } from "@/src/api";
 
 interface ConfiguracionViewProps {
@@ -64,6 +66,7 @@ export function ConfiguracionView({
     isOpen: false,
     configuracion: undefined as ConfiguracionTipo | undefined,
   });
+  const [vistaPrevia, setVistaPrevia] = useState(false);
   
   const [configuraciones, setConfiguraciones] = useState<ConfiguracionTipo[]>([]);
   const [selectedConfig, setSelectedConfig] = useState<ConfiguracionTipo | null>(null);
@@ -549,7 +552,9 @@ export function ConfiguracionView({
             <div className="space-y-8 animate-in slide-in-from-right-4 duration-700">
               {/* Functional Tabs */}
               <Tabs defaultValue="aspectos" className="w-full">
-                <TabsList className="bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-200/50 grid grid-cols-3 h-14">
+                <div className="flex items-center gap-3 mb-0">
+                  <TabsList className="bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-200/50 grid grid-cols-3 h-14 flex-1">
+
                   <TabsTrigger 
                     value="aspectos" 
                       className="rounded-[1.5rem] font-semibold text-sm data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm"
@@ -562,15 +567,26 @@ export function ConfiguracionView({
                   >
                     Escalas
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="a-e" 
+                  <TabsTrigger
+                    value="a-e"
                       className="rounded-[1.5rem] font-semibold text-sm data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm"
                   >
                     Matriz A/E
                   </TabsTrigger>
                 </TabsList>
 
-                <div className="mt-8 bg-white border border-slate-100 rounded-[2.5rem] p-8 min-h-[500px] shadow-sm">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setVistaPrevia(true)}
+                    className="h-11 rounded-2xl border-indigo-200 text-indigo-600 hover:bg-indigo-50 font-semibold text-sm px-4 flex-shrink-0 gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Vista Previa
+                  </Button>
+                </div>
+
+                <div className="mt-4 bg-white border border-slate-100 rounded-[2.5rem] p-8 min-h-[500px] shadow-sm">
                   <TabsContent value="aspectos" className="m-0 focus-visible:ring-0">
                     <ConfiguracionAspectoView
                       configuraciones={configuracionAspectos}
@@ -626,6 +642,13 @@ export function ConfiguracionView({
         onClose={() => setModalConfiguracionTipo({ isOpen: false, configuracion: undefined })}
         onSuccess={handleConfigCreated}
         configuracion={modalConfiguracionTipo.configuracion}
+      />
+
+      <ModalVistaPrevia
+        isOpen={vistaPrevia}
+        onClose={() => setVistaPrevia(false)}
+        cfgTId={selectedConfig?.id ?? null}
+        configName={selectedConfig?.tipo_evaluacion?.tipo?.nombre}
       />
     </div>
   );

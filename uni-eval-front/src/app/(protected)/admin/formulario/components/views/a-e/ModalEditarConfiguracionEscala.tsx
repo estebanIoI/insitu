@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BaseModal } from "@/components/modals";
 import { Card, CardContent, CardDescription } from "@/components/ui/card";
-import { AlertCircle, Edit3, FileText } from "lucide-react";
+import { AlertCircle, AlertTriangle, Edit3, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   configuracionValoracionService,
@@ -351,7 +351,14 @@ export function ModalEditarConfiguracionEscala({
                 }
                 placeholder="Ej: 4.5"
                 disabled={isLoading}
+                className={formData.puntaje === 0 ? "border-amber-300 focus-visible:ring-amber-400" : ""}
               />
+              {formData.puntaje === 0 && (
+                <div className="flex items-center gap-1.5 text-amber-600 text-xs">
+                  <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span>Puntaje 0 — este valor no sumará a la nota del docente.</span>
+                </div>
+              )}
             </div>
 
             {/* Campo Orden */}

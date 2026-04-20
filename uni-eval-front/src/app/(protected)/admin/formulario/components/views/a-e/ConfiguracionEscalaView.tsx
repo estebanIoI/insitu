@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Power, Loader2, Trash2, Sliders, Trophy, Hash, Star } from "lucide-react";
+import { Plus, Edit, Power, Loader2, Trash2, Sliders, Trophy, Hash, Star, AlertTriangle } from "lucide-react";
 import { type CfgEItem, configuracionValoracionService } from "@/src/api";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -114,9 +114,19 @@ export function ConfiguracionEscalaView({
             <Card key={config.id} className="border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 rounded-[2rem] overflow-hidden bg-white group">
               <div className="p-5 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                   <div className="h-10 w-10 rounded-xl bg-slate-50 flex flex-col items-center justify-center border border-slate-100 text-slate-400 group-hover:bg-indigo-50 group-hover:border-indigo-100 group-hover:text-indigo-600 transition-colors">
-                    <span className="text-[10px] font-black leading-none mb-0.5">PTS</span>
-                    <span className="text-xs font-black leading-none">{config.puntaje}</span>
+                   <div className={`h-10 w-10 rounded-xl flex flex-col items-center justify-center border transition-colors ${
+                     config.puntaje === 0
+                       ? 'bg-amber-50 border-amber-200 text-amber-600'
+                       : 'bg-slate-50 border-slate-100 text-slate-400 group-hover:bg-indigo-50 group-hover:border-indigo-100 group-hover:text-indigo-600'
+                   }`}>
+                    {config.puntaje === 0 ? (
+                      <AlertTriangle className="h-4 w-4" />
+                    ) : (
+                      <>
+                        <span className="text-[10px] font-black leading-none mb-0.5">PTS</span>
+                        <span className="text-xs font-black leading-none">{config.puntaje}</span>
+                      </>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <div className="flex items-center gap-2 mb-0.5">
@@ -136,7 +146,11 @@ export function ConfiguracionEscalaView({
                     <div className="flex items-center gap-2">
                          <span className="text-xs font-medium text-slate-300">Prioridad {config.orden}</span>
                        <div className="h-1 w-1 rounded-full bg-slate-200" />
+                       {config.puntaje === 0 ? (
+                         <span className="text-xs font-semibold text-amber-500">Puntaje sin definir — editar</span>
+                       ) : (
                          <span className="text-xs font-medium text-indigo-400">Valoración Cuantitativa</span>
+                       )}
                     </div>
                   </div>
                 </div>

@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardDescription } from "@/components/ui/card";
-import { AlertCircle, Settings, FileText } from "lucide-react";
+import { AlertCircle, AlertTriangle, Settings, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   configuracionValoracionService,
@@ -69,6 +69,10 @@ export function ModalConfiguracionEscala({
   const selectedCount = Object.values(rowsByCategory)
     .flat()
     .filter((row) => row.selected).length;
+
+  const selectedWithZeroPuntaje = Object.values(rowsByCategory)
+    .flat()
+    .filter((row) => row.selected && row.puntaje === 0).length;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -450,6 +454,15 @@ export function ModalConfiguracionEscala({
                     </Card>
                   );
                 })}
+              </div>
+            )}
+
+            {selectedWithZeroPuntaje > 0 && (
+              <div className="flex items-start gap-2 text-amber-700 text-sm bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <span>
+                  {selectedWithZeroPuntaje} escala{selectedWithZeroPuntaje > 1 ? "s seleccionadas tienen" : " seleccionada tiene"} puntaje 0. Asegúrate de seleccionarlas en el orden correcto para que el puntaje se calcule automáticamente (de menor a mayor).
+                </span>
               </div>
             )}
 
