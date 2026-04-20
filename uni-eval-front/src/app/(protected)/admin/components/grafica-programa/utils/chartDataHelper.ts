@@ -18,24 +18,27 @@ export const simplificarNombrePrograma = (nombre: string): string => {
 };
 
 export const prepareChartData = (estadisticas: ProgramaSummary[]): ChartDataItem[] => {
-  return estadisticas.map((item: ProgramaSummary) => {
-    const { metricas } = item;
-    const completadas = metricas.total_realizadas;
-    const pendientes = metricas.total_pendientes;
-    const total = metricas.total_evaluaciones;
-    const porcentaje = total > 0 ? Math.round((completadas / total) * 100) : 0;
-    const nombreSimplificado = simplificarNombrePrograma(item.nombre);
+  return estadisticas
+    .map((item: ProgramaSummary) => {
+      const { metricas } = item;
+      const completadas = metricas.total_realizadas;
+      const pendientes = metricas.total_pendientes;
+      const total = metricas.total_evaluaciones;
+      const porcentaje = total > 0 ? Math.round((completadas / total) * 100) : 0;
+      const nombreSimplificado = simplificarNombrePrograma(item.nombre);
 
-    return {
-      name: nombreSimplificado,
-      programaCompleto: item.nombre,
-      completadas,
-      pendientes,
-      total,
-      porcentaje,
-      selected: item.selected ?? false,
-    };
-  });
+      return {
+        name: nombreSimplificado,
+        programaCompleto: item.nombre,
+        completadas,
+        pendientes,
+        total,
+        porcentaje,
+        selected: item.selected ?? false,
+      };
+    })
+    // Programs with completadas appear first, then sort by total descending
+    .sort((a, b) => b.completadas - a.completadas || b.total - a.total);
 };
 
 export const calculateTotals = (estadisticas: ProgramaSummary[]) => {

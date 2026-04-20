@@ -7,7 +7,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Cell,
   LabelList,
 } from "recharts";
 import { CustomChartTooltip } from "./CustomChartTooltip";
@@ -23,21 +22,42 @@ interface ChartSectionProps {
 
 const chartConfig: ChartConfig = {
   completadas: {
-    label: "Completadas",
+    label: "Realizadas",
     color: "hsl(221, 83%, 53%)",
   },
   pendientes: {
     label: "Pendientes",
-    color: "hsl(220, 8%, 85%)",
+    color: "hsl(220, 8%, 88%)",
   },
 };
 
-// Custom bar shape for completadas: minimum 6px when value > 0, nothing when 0
-const CompletadasShape = (props: any) => {
-  const { x, y, width, height, value, fill } = props;
-  if (!value || value === 0) return null;
-  const drawWidth = Math.max(width || 0, 6);
-  return <rect x={x} y={y} width={drawWidth} height={height} fill={fill} rx={2} />;
+// Single custom shape: renders gray total bar + blue completadas overlay proportionally
+const BulletBarShape = (props: any) => {
+  const { x, y, width, height, fill } = props;
+  // width here = full bar width (scaled to total since dataKey="total")
+  // completadas is passed via the chartData entry using the payload
+  const payload = props.payload || {};
+  const completadas = payload.completadas ?? 0;
+  const total = payload.total ?? 0;
+
+  const isSelected = payload.selected;
+  const grayFill = isSelected ? "hsl(220,8%,78%)" : "hsl(220,8%,90%)";
+  const blueFill = fill || "hsl(221,83%,53%)";
+
+  const blueWidth = total > 0 && completadas > 0
+    ? Math.max((completadas / total) * (width || 0), 6)
+    : 0;
+
+  return (
+    <g>
+      {/* Gray total background */}
+      <rect x={x} y={y} width={width} height={height} fill={grayFill} rx={3} />
+      {/* Blue completadas overlay */}
+      {blueWidth > 0 && (
+        <rect x={x} y={y} width={blueWidth} height={height} fill={blueFill} rx={3} />
+      )}
+    </g>
+  );
 };
 
 export const ChartSection: React.FC<ChartSectionProps> = ({
@@ -110,55 +130,15 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
             />
             <ChartTooltip content={<CustomChartTooltip />} />
 
-            {/* Barra de completadas: shape custom para mínimo visible solo cuando value > 0 */}
+            {/* Una sola barra con shape custom: fondo gris (total) + overlay azul (completadas) */}
             <Bar
-              dataKey="completadas"
-              stackId="stack"
+              dataKey="total"
               fill="hsl(221, 83%, 53%)"
               maxBarSize={80}
               cursor="pointer"
-              shape={(props: any) => <CompletadasShape {...props} />}
+              shape={(props: any) => <BulletBarShape {...props} />}
               onClick={(data) => onBarClick(data.programaCompleto, "completadas")}
             >
-              {chartData.map((data, index) => {
-                const isSelected = data.programaCompleto === programaSeleccionado;
-                let fillColor = "hsl(221, 83%, 53%)";
-                if (isSelected) fillColor = "hsl(221, 83%, 43%)";
-                else if (programaSeleccionado && !isSelected) fillColor = "hsl(215, 16%, 85%)";
-                return (
-                  <Cell
-                    key={`completadas-${index}`}
-                    className={isSelected ? "drop-shadow-lg" : ""}
-                    fill={fillColor}
-                  />
-                );
-              })}
-            </Bar>
-
-            {/* Barra de pendientes: lleva el label de completadas para que quede encima de todo */}
-            <Bar
-              dataKey="pendientes"
-              stackId="stack"
-              fill="hsl(220, 8%, 85%)"
-              radius={[4, 4, 4, 4]}
-              maxBarSize={80}
-              cursor="pointer"
-              onClick={(data) => onBarClick(data.programaCompleto, "pendientes")}
-            >
-              {chartData.map((data, index) => {
-                const isSelected = data.programaCompleto === programaSeleccionado;
-                let fillColor = "hsl(220, 8%, 85%)";
-                if (isSelected) fillColor = "hsl(220, 8%, 70%)";
-                else if (programaSeleccionado && !isSelected) fillColor = "hsl(215, 16%, 85%)";
-                return (
-                  <Cell
-                    key={`pendientes-${index}`}
-                    className={isSelected ? "drop-shadow-lg" : ""}
-                    fill={fillColor}
-                  />
-                );
-              })}
-              {/* Label de completadas renderizado aquí (después de pendientes) para quedar visible */}
               <LabelList
                 dataKey="completadas"
                 position="right"
@@ -188,7 +168,7 @@ export const ChartSection: React.FC<ChartSectionProps> = ({
       <div className="flex items-center justify-center gap-8 mt-6 pt-4 border-t border-gray-100">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-blue-500"></div>
-          <span className="text-sm font-medium text-gray-700">Evaluaciones Completadas</span>
+          <span className="text-sm font-medium text-gray-700">Evaluaciones Realizadas</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-gray-300"></div>
