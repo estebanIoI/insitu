@@ -161,30 +161,17 @@ class FilterRepository {
   }
 
   /**
-   * Obtiene todos los filtros desde la base local
+   * Obtiene todos los filtros desde la base local.
+   * Sedes/periodos/etc. vienen de la BD externa (misma fuente que getAllFilters).
+   * Roles vienen de rol_mix en la BD local.
    */
   async getAllFiltersLocal() {
     const [sedes, periodos, programas, semestres, grupos, roles] = await Promise.all([
-      prisma.sede.findMany({
-        select: { id: true, nombre: true },
-        orderBy: { nombre: 'asc' },
-      }),
-      prisma.peri.findMany({
-        select: { id: true, nombre: true },
-        orderBy: { nombre: 'desc' },
-      }),
-      prisma.prog.findMany({
-        select: { id: true, nombre: true },
-        orderBy: { nombre: 'asc' },
-      }),
-      prisma.smstre.findMany({
-        select: { id: true, nombre: true },
-        orderBy: { id: 'asc' },
-      }),
-      prisma.grp.findMany({
-        select: { id: true, nombre: true },
-        orderBy: { nombre: 'asc' },
-      }),
+      this.getUniqueSedes(),
+      this.getUniquePeriodos(),
+      this.getUniqueProgramas(),
+      this.getUniqueSemestres(),
+      this.getUniqueGrupos(),
       prisma.rol_mix.findMany({
         select: { id: true, nombre: true, origen: true, rol_origen_id: true },
         orderBy: { id: 'asc' },
@@ -192,11 +179,11 @@ class FilterRepository {
     ]);
 
     return {
-      sedes,
-      periodos,
-      programas,
-      semestres,
-      grupos,
+      sedes: sedes.map((s) => ({ id: 0, nombre: s.NOMBRE_SEDE })),
+      periodos: periodos.map((p) => ({ id: 0, nombre: p.PERIODO })),
+      programas: programas.map((p) => ({ id: 0, nombre: p.NOM_PROGRAMA })),
+      semestres: semestres.map((s) => ({ id: 0, nombre: s.SEMESTRE })),
+      grupos: grupos.map((g) => ({ id: 0, nombre: g.GRUPO })),
       roles,
     };
   }
