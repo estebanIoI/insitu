@@ -2073,33 +2073,22 @@ async function getDocenteMateriaCompletion({ cfg_t, docente, codigo_materia, sed
 	if (!docente) throw new Error('docente is required');
 	if (!codigo_materia) throw new Error('codigo_materia is required');
 
-	const whereVista = buildVistaWhere({ sede, periodo, programa, semestre, grupo });
-	whereVista.ID_DOCENTE = docente;
-	const codigoMatNum = Number(codigo_materia);
-	if (!isNaN(codigoMatNum)) {
-		whereVista.COD_ASIGNATURA = codigoMatNum;
-	}
+	// Try to get student enrollment from external vista (production DB may lack student fields)
+	let vista = [];
+	let nombreDocente = null;
+	try {
+		const whereVista = buildVistaWhere({ sede, periodo, programa, semestre, grupo });
+		whereVista.ID_DOCENTE = docente;
+		const codigoMatNum = Number(codigo_materia);
+		if (!isNaN(codigoMatNum)) whereVista.COD_ASIGNATURA = codigoMatNum;
 
-	const vista = await userPrisma.vista_academica_insitus.findMany({
-		where: whereVista,
-		select: { ID_ESTUDIANTE: true, PRIMER_APELLIDO: true, SEGUNDO_APELLIDO: true, PRIMER_NOMBRE: true, SEGUNDO_NOMBRE: true, GRUPO: true, DOCENTE: true }
-	});
-
-	// Group students by GRUPO
-	const byGrupo = new Map();
-	for (const v of vista) {
-		if (!v.ID_ESTUDIANTE) continue;
-		const grupoKey = v.GRUPO || 'SIN_GRUPO';
-		const entry = byGrupo.get(grupoKey) || { grupo: grupoKey, students: new Map() };
-		if (!entry.students.has(v.ID_ESTUDIANTE)) {
-			entry.students.set(v.ID_ESTUDIANTE, {
-				id: v.ID_ESTUDIANTE,
-				nombre: [v.PRIMER_APELLIDO, v.SEGUNDO_APELLIDO, v.PRIMER_NOMBRE, v.SEGUNDO_NOMBRE]
-					.filter(Boolean)
-					.join(' ').replace(/\s+/g, ' ').trim()
-			});
-		}
-		byGrupo.set(grupoKey, entry);
+		vista = await userPrisma.vista_academica_insitus.findMany({
+			where: whereVista,
+			select: { ID_ESTUDIANTE: true, PRIMER_APELLIDO: true, SEGUNDO_APELLIDO: true, PRIMER_NOMBRE: true, SEGUNDO_NOMBRE: true, GRUPO: true, DOCENTE: true }
+		});
+		if (vista.length > 0) nombreDocente = vista[0].DOCENTE || null;
+	} catch {
+		// Production DB view lacks student fields — fall back to eval-only data below
 	}
 
 	// Find evals for this docente + materia with responses
@@ -2112,6 +2101,33 @@ async function getDocenteMateriaCompletion({ cfg_t, docente, codigo_materia, sed
 	const withResp = new Set(det.map(d => d.eval_id));
 	const completedIds = new Set(evals.filter(e => withResp.has(e.id)).map(e => e.estudiante).filter(Boolean));
 
+	// Build student groups
+	const byGrupo = new Map();
+	if (vista.length > 0) {
+		// Vista has student data — use it
+		for (const v of vista) {
+			if (!v.ID_ESTUDIANTE) continue;
+			const grupoKey = v.GRUPO || 'SIN_GRUPO';
+			const entry = byGrupo.get(grupoKey) || { grupo: grupoKey, students: new Map() };
+			if (!entry.students.has(v.ID_ESTUDIANTE)) {
+				entry.students.set(v.ID_ESTUDIANTE, {
+					id: v.ID_ESTUDIANTE,
+					nombre: [v.PRIMER_APELLIDO, v.SEGUNDO_APELLIDO, v.PRIMER_NOMBRE, v.SEGUNDO_NOMBRE]
+						.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+				});
+			}
+			byGrupo.set(grupoKey, entry);
+		}
+	} else {
+		// Fallback: derive students from local eval records (no external enrollment data)
+		const fallbackGroup = { grupo: 'SIN_GRUPO', students: new Map() };
+		for (const e of evals) {
+			if (!e.estudiante) continue;
+			fallbackGroup.students.set(e.estudiante, { id: e.estudiante, nombre: e.estudiante });
+		}
+		if (fallbackGroup.students.size > 0) byGrupo.set('SIN_GRUPO', fallbackGroup);
+	}
+
 	// Build result per group
 	const grupos = [];
 	for (const { grupo, students } of byGrupo.values()) {
@@ -2120,8 +2136,6 @@ async function getDocenteMateriaCompletion({ cfg_t, docente, codigo_materia, sed
 		const pendientes = allStudents.filter(s => !completedIds.has(s.id));
 		grupos.push({ grupo, completados, pendientes });
 	}
-
-	const nombreDocente = vista.length > 0 ? vista[0].DOCENTE : null;
 
 	return { docente, nombre_docente: nombreDocente, codigo_materia: String(codigo_materia), grupos };
 }
