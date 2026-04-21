@@ -158,6 +158,7 @@ services:
         NEXT_PUBLIC_API_TIMEOUT: ${NEXT_PUBLIC_API_TIMEOUT:-30000}
         NEXT_PUBLIC_RETRY_ATTEMPTS: ${NEXT_PUBLIC_RETRY_ATTEMPTS:-3}
         NEXT_PUBLIC_RETRY_DELAY: ${NEXT_PUBLIC_RETRY_DELAY:-1000}
+        CACHEBUST: ${CACHEBUST:-1}
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -166,6 +167,10 @@ services:
       - "traefik.http.routers.insitu-frontend.tls.certresolver=letsencrypt"
       - "traefik.http.services.insitu-frontend.loadbalancer.server.port=3000"
       - "traefik.docker.network=dokploy-network"
+      - "traefik.http.routers.insitu-frontend-http.rule=Host(`eduportal.cloud`) || Host(`www.eduportal.cloud`)"
+      - "traefik.http.routers.insitu-frontend-http.entrypoints=web"
+      - "traefik.http.routers.insitu-frontend-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
     environment:
       NODE_ENV: production
       PORT: 3000
