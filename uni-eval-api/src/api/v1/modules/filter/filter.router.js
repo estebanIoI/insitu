@@ -10,6 +10,7 @@ const controller = new FilterController(service);
 const router = Router();
 
 router.get('/', controller.getAllFilters);
+router.get('/local', controller.getAllFiltersLocal);
 router.get('/sedes', controller.getSedes);
 router.get('/periodos', controller.getPeriodos);
 router.get('/programas', controller.getProgramas);

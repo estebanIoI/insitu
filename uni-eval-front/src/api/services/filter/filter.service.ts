@@ -112,7 +112,7 @@ const toFilterOptions = (arr: any[]): FilterOption[] => {
 
 export const getAllFiltersLocal = async (): Promise<FilterResponse> => {
   try {
-    const response = await httpClient.get('/filter');
+    const response = await httpClient.get('/filter/local');
     return {
       sedes: toFilterOptions(response?.sedes),
       periodos: toFilterOptions(response?.periodos),
