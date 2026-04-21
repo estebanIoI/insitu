@@ -18,7 +18,7 @@ const nextConfig = {
     domains: ['clownfish-app-hnngr.ondigitalocean.app', 'virtual.itp.edu.co', 'itp.edu.co'],
   },
   output: 'standalone',
-  serverExternalPackages: ['recharts', 'react-smooth', 'd3-scale', 'd3-shape', 'd3-path'],
+  transpilePackages: ['recharts', 'react-smooth'],
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
