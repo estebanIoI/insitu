@@ -161,9 +161,10 @@ class FilterRepository {
   }
 
   /**
-   * Obtiene todos los filtros desde la base local.
-   * Sedes/periodos/etc. vienen de la BD externa (misma fuente que getAllFilters).
-   * Roles vienen de rol_mix en la BD local.
+   * Obtiene todos los filtros para el modal de configuración.
+   * Sedes/periodos/etc. vienen de la BD externa como strings (igual que getAllFilters).
+   * El frontend convierte los strings a {id: index+1, nombre} via toFilterOptions.
+   * Roles vienen de rol_mix en la BD local con sus IDs reales.
    */
   async getAllFiltersLocal() {
     const [sedes, periodos, programas, semestres, grupos, roles] = await Promise.all([
@@ -179,11 +180,11 @@ class FilterRepository {
     ]);
 
     return {
-      sedes: sedes.map((s) => ({ id: 0, nombre: s.NOMBRE_SEDE })),
-      periodos: periodos.map((p) => ({ id: 0, nombre: p.PERIODO })),
-      programas: programas.map((p) => ({ id: 0, nombre: p.NOM_PROGRAMA })),
-      semestres: semestres.map((s) => ({ id: 0, nombre: s.SEMESTRE })),
-      grupos: grupos.map((g) => ({ id: 0, nombre: g.GRUPO })),
+      sedes: sedes.map((s) => s.NOMBRE_SEDE),
+      periodos: periodos.map((p) => p.PERIODO),
+      programas: programas.map((p) => p.NOM_PROGRAMA),
+      semestres: semestres.map((s) => s.SEMESTRE),
+      grupos: grupos.map((g) => g.GRUPO),
       roles,
     };
   }
