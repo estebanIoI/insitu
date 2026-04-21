@@ -13,6 +13,7 @@ import { useMediaDetection } from "./hooks/useMediaDetection";
 import { getLayoutClasses } from "./utils/layout.utils";
 import { getRedirectPath, getRememberedUsername, saveRememberedUsername, saveUserData } from "./utils/auth";
 import type { LoginFormData, LoginStage, MediaMode, VideoType } from "./types/types";
+import { Wrench } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function LoginPage() {
 
   const [loginStage, setLoginStage] = useState<LoginStage>("idle");
   const [isPageLoaded, setIsPageLoaded] = useState(false);
+  const [serverError, setServerError] = useState(false);
   const [mediaMode, setMediaMode] = useState<MediaMode>("video");
   const [videoType, setVideoType] = useState<VideoType>("youtube");
   const { videoFormat } = useMediaDetection(videoType);
@@ -54,6 +56,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginStage("loading");
+    setServerError(false);
 
     try {
       const response = await authService.login({
@@ -79,8 +82,13 @@ export default function LoginPage() {
         return;
       }
 
-      // Error en la respuesta del servidor
       setLoginStage("idle");
+
+      if (response.isServerError) {
+        setServerError(true);
+        return;
+      }
+
       toast({
         title: "Error de autenticación",
         description: response.message || "Credenciales incorrectas",
@@ -88,7 +96,6 @@ export default function LoginPage() {
       });
       return;
     } catch (error: any) {
-      // Error en la solicitud
       setLoginStage("idle");
       toast({
         title: "Error de autenticación",
@@ -148,7 +155,26 @@ export default function LoginPage() {
             ${isPageLoaded ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0"}`}>
           <div className="pt-0 px-10 pb-8">
             <LoginHeader videoFormat={videoFormat} />
-            
+
+            {/* Banner de mantenimiento — visible solo ante errores 5xx del servidor */}
+            <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
+              serverError ? "max-h-28 opacity-100 mb-5" : "max-h-0 opacity-0 mb-0"
+            }`}>
+              <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl bg-amber-50 border border-amber-200/70 shadow-sm">
+                <div className="shrink-0 mt-0.5 w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">
+                  <Wrench size={13} className="text-amber-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-amber-900 leading-tight">
+                    Servicio en mantenimiento
+                  </p>
+                  <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                    Estamos trabajando para restablecer el servicio. Por favor, intenta de nuevo en unos minutos.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <LoginForm
               formData={formData}
               onUpdateFormData={updateFormData}

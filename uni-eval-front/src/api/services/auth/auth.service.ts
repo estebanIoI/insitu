@@ -94,6 +94,7 @@ export interface UserProfile {
 
 export interface AuthResponse extends ApiResponse<LoginResponse> {
   message: string;
+  isServerError?: boolean;
 }
 
 // ========================
@@ -272,24 +273,35 @@ export const authService = {
     } catch (error: any) {
       // Registrar intento fallido
       rateLimiter.recordAttempt(identifier);
-      
+
       const remaining = rateLimiter.getRemainingAttempts(identifier);
       const { showCounter } = rateLimiter.canAttempt(identifier);
-      
-      logger.error('Login fallido', { 
-        username: identifier, 
+
+      logger.error('Login fallido', {
+        username: identifier,
         error: error.message,
         attemptsRemaining: remaining,
-        showCounter 
+        showCounter
       });
-      
+
+      // Errores 5xx: no exponer detalles internos (IPs, stack traces, errores de BD)
+      if (error.code >= 500) {
+        return {
+          success: false,
+          data: null as any,
+          message: 'Servicio no disponible',
+          isServerError: true,
+          error,
+        };
+      }
+
       let errorMessage = error.message || 'Error al autenticar';
-      
+
       // Solo mostrar contador de intentos después de los 3 intentos silenciosos
       if (showCounter && remaining > 0) {
         errorMessage += ` (${remaining} intentos restantes)`;
       }
-      
+
       return {
         success: false,
         data: null as any,
