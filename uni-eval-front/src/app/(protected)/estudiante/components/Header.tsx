@@ -45,6 +45,7 @@ interface HeaderProps {
 export function Header({ onLogout }: HeaderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [showProfileModal, setShowProfileModal] = useState(false)
+  const [showMateriasModal, setShowMateriasModal] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [perfilAcademico, setPerfilAcademico] = useState<UserProfile | null>(null)
   const [loadingPerfil, setLoadingPerfil] = useState(false)
@@ -197,11 +198,10 @@ export function Header({ onLogout }: HeaderProps) {
                 </DropdownMenuItem>
 
                 {/* MATERIAS */}
-                <DropdownMenuItem asChild>
-                  <Link href="/estudiante/materias" className="flex items-center w-full">
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    Materias
-                  </Link>
+                <DropdownMenuItem onClick={() => setShowMateriasModal(true)}>
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Materias
+                  <ChevronRight className="ml-auto h-4 w-4" />
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
@@ -213,6 +213,49 @@ export function Header({ onLogout }: HeaderProps) {
           </DropdownMenu>
         </div>
       </header>
+
+      {/* Modal Materias */}
+      <Dialog open={showMateriasModal} onOpenChange={setShowMateriasModal}>
+        <DialogContent className="w-[calc(100vw-1rem)] max-w-lg max-h-[88vh] overflow-y-auto rounded-2xl p-4 sm:p-6">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-base sm:text-lg flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-blue-600" />
+              Mis Materias
+            </DialogTitle>
+          </DialogHeader>
+
+          {loadingPerfil ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 rounded-xl" />
+              ))}
+            </div>
+          ) : perfilAcademico?.materias && perfilAcademico.materias.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-xs text-gray-400">
+                {perfilAcademico.materias.length} materia{perfilAcademico.materias.length !== 1 ? "s" : ""} registrada{perfilAcademico.materias.length !== 1 ? "s" : ""}
+              </p>
+              <div className="space-y-1.5">
+                {perfilAcademico.materias.map((m, i) => (
+                  <div key={i} className="p-2.5 border rounded-xl text-xs flex justify-between items-start gap-2 bg-gray-50">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 leading-snug">
+                        {m.nombre || `Código ${m.codigo}`}
+                      </p>
+                      {m.docente?.nombre && (
+                        <p className="text-gray-500 truncate mt-0.5">{capitalizeName(m.docente.nombre)}</p>
+                      )}
+                    </div>
+                    <span className="text-gray-400 font-mono text-xs flex-shrink-0">{m.codigo}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 text-center py-4">No hay materias registradas para este periodo.</p>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Modal Perfil */}
       <Dialog open={showProfileModal} onOpenChange={setShowProfileModal}>
