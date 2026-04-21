@@ -554,24 +554,27 @@ class CfgTRepository {
 	}
 
 	async createCfgTFull({ cfg_t: cfgTData, scopes, role_mix_ids, autoeval_role_mix_ids }) {
+		// Build create data only with fields confirmed to exist in the production schema.
+		// genera_autoeval / autoeval_tipo_form_id are absent from production — omit them.
+		const createData = {
+			tipo_id:         cfgTData.tipo_id,
+			tipo_form_id:    cfgTData.tipo_form_id,
+			fecha_inicio:    cfgTData.fecha_inicio,
+			fecha_fin:       cfgTData.fecha_fin,
+			es_cmt_gen:      cfgTData.es_cmt_gen ?? true,
+			es_cmt_gen_oblig: cfgTData.es_cmt_gen_oblig ?? false,
+			es_activo:       cfgTData.es_activo ?? true,
+		};
+
+		const hasScopeModel = typeof prisma.cfg_t_scope !== 'undefined';
+		const hasRelModel   = typeof prisma.cfg_t_rel !== 'undefined';
+
 		return prisma.$transaction(async (tx) => {
 			// 1. Crear cfg_t principal
-			const cfgT = await tx.cfg_t.create({
-				data: {
-					tipo_id:              cfgTData.tipo_id,
-					tipo_form_id:         cfgTData.tipo_form_id,
-					genera_autoeval:      cfgTData.genera_autoeval ?? false,
-					autoeval_tipo_form_id: cfgTData.autoeval_tipo_form_id ?? null,
-					fecha_inicio:         cfgTData.fecha_inicio,
-					fecha_fin:            cfgTData.fecha_fin,
-					es_cmt_gen:           cfgTData.es_cmt_gen ?? true,
-					es_cmt_gen_oblig:     cfgTData.es_cmt_gen_oblig ?? false,
-					es_activo:            cfgTData.es_activo ?? true,
-				},
-			});
+			const cfgT = await tx.cfg_t.create({ data: createData });
 
-			// 2. Crear scopes del cfg_t principal
-			if (scopes.length > 0) {
+			// 2. Crear scopes del cfg_t principal (si la tabla existe)
+			if (hasScopeModel && scopes.length > 0) {
 				await tx.cfg_t_scope.createMany({
 					data: scopes.map((s) => ({
 						cfg_t_id:    cfgT.id,
@@ -597,24 +600,21 @@ class CfgTRepository {
 
 			let cfgAutoeval = null;
 
-			// 4. Si genera autoevaluación, crear cfg_t de autoevaluación y relacionarlo
+			// 4. Si genera autoevaluación y la tabla cfg_t_rel existe en producción
 			if (cfgTData.genera_autoeval && cfgTData.autoeval_tipo_form_id) {
-				cfgAutoeval = await tx.cfg_t.create({
-					data: {
-						tipo_id:      cfgTData.tipo_id,
-						tipo_form_id: cfgTData.autoeval_tipo_form_id,
-						genera_autoeval: false,
-						autoeval_tipo_form_id: null,
-						fecha_inicio: cfgTData.fecha_inicio,
-						fecha_fin:    cfgTData.fecha_fin,
-						es_cmt_gen:   cfgTData.es_cmt_gen ?? true,
-						es_cmt_gen_oblig: cfgTData.es_cmt_gen_oblig ?? false,
-						es_activo:    cfgTData.es_activo ?? true,
-					},
-				});
+				const autoevalData = {
+					tipo_id:         cfgTData.tipo_id,
+					tipo_form_id:    cfgTData.autoeval_tipo_form_id,
+					fecha_inicio:    cfgTData.fecha_inicio,
+					fecha_fin:       cfgTData.fecha_fin,
+					es_cmt_gen:      cfgTData.es_cmt_gen ?? true,
+					es_cmt_gen_oblig: cfgTData.es_cmt_gen_oblig ?? false,
+					es_activo:       cfgTData.es_activo ?? true,
+				};
 
-				// Mismos scopes para la autoevaluación
-				if (scopes.length > 0) {
+				cfgAutoeval = await tx.cfg_t.create({ data: autoevalData });
+
+				if (hasScopeModel && scopes.length > 0) {
 					await tx.cfg_t_scope.createMany({
 						data: scopes.map((s) => ({
 							cfg_t_id:    cfgAutoeval.id,
@@ -627,11 +627,7 @@ class CfgTRepository {
 					});
 				}
 
-				// Roles de la autoevaluación
-				const autoevalRoles = autoeval_role_mix_ids.length > 0
-					? autoeval_role_mix_ids
-					: role_mix_ids;
-
+				const autoevalRoles = autoeval_role_mix_ids.length > 0 ? autoeval_role_mix_ids : role_mix_ids;
 				if (autoevalRoles.length > 0) {
 					await tx.cfg_t_rol.createMany({
 						data: autoevalRoles.map((rolMixId) => ({
@@ -642,59 +638,58 @@ class CfgTRepository {
 					});
 				}
 
-				// Relacionar evaluación principal con autoevaluación
-				await tx.cfg_t_rel.create({
-					data: {
-						cfg_eval_id:     cfgT.id,
-						cfg_autoeval_id: cfgAutoeval.id,
-					},
-				});
+				if (hasRelModel) {
+					await tx.cfg_t_rel.create({
+						data: { cfg_eval_id: cfgT.id, cfg_autoeval_id: cfgAutoeval.id },
+					});
+				}
 			}
 
-			return {
-				cfg_eval:     cfgT,
-				cfg_autoeval: cfgAutoeval,
-			};
+			return { cfg_eval: cfgT, cfg_autoeval: cfgAutoeval };
 		});
 	}
 
 	async findCfgByIdWithPair(id) {
 		if (!id) return null;
 
-		const cfgT = await prisma.cfg_t.findUnique({
-			where: { id },
-			include: {
-				tipo_form: { select: { id: true, nombre: true } },
-				ct_map: { include: { cat_t: true, tipo: true } },
-				cfg_t_scope: true,
-				cfg_t_rol: { include: { rol_mix: true } },
-				cfg_t_rel_cfg_t_rel_cfg_eval_idTocfg_t: true,
-				cfg_t_rel_cfg_t_rel_cfg_autoeval_idTocfg_t: true,
-			},
-		});
+		const hasScopeModel = typeof prisma.cfg_t_scope !== 'undefined';
+		const hasRelModel   = typeof prisma.cfg_t_rel !== 'undefined';
+
+		const includeBase = {
+			tipo_form: { select: { id: true, nombre: true } },
+			ct_map: { include: { cat_t: true, tipo: true } },
+			cfg_t_rol: { include: { rol_mix: true } },
+		};
+		if (hasScopeModel) includeBase.cfg_t_scope = true;
+		if (hasRelModel) {
+			includeBase.cfg_t_rel_cfg_t_rel_cfg_eval_idTocfg_t = true;
+			includeBase.cfg_t_rel_cfg_t_rel_cfg_autoeval_idTocfg_t = true;
+		}
+
+		const cfgT = await prisma.cfg_t.findUnique({ where: { id }, include: includeBase });
 
 		if (!cfgT) return null;
 
 		const [enriched] = await this.#enrichCfgTsWithRoles([cfgT]);
 
-		// Determinar si tiene pareja (eval↔autoeval)
-		const relAsEval     = cfgT.cfg_t_rel_cfg_t_rel_cfg_eval_idTocfg_t;
-		const relAsAutoeval = cfgT.cfg_t_rel_cfg_t_rel_cfg_autoeval_idTocfg_t;
-		const pairId = relAsEval?.cfg_autoeval_id ?? relAsAutoeval?.cfg_eval_id ?? null;
-
 		let pair = null;
-		if (pairId) {
-			const pairCfgT = await prisma.cfg_t.findUnique({
-				where: { id: pairId },
-				include: {
+		if (hasRelModel) {
+			const relAsEval     = cfgT.cfg_t_rel_cfg_t_rel_cfg_eval_idTocfg_t;
+			const relAsAutoeval = cfgT.cfg_t_rel_cfg_t_rel_cfg_autoeval_idTocfg_t;
+			const pairId = relAsEval?.cfg_autoeval_id ?? relAsAutoeval?.cfg_eval_id ?? null;
+
+			if (pairId) {
+				const pairInclude = {
 					tipo_form: { select: { id: true, nombre: true } },
 					ct_map: { include: { cat_t: true, tipo: true } },
-					cfg_t_scope: true,
 					cfg_t_rol: { include: { rol_mix: true } },
-				},
-			});
-			if (pairCfgT) {
-				[pair] = await this.#enrichCfgTsWithRoles([pairCfgT]);
+				};
+				if (hasScopeModel) pairInclude.cfg_t_scope = true;
+
+				const pairCfgT = await prisma.cfg_t.findUnique({ where: { id: pairId }, include: pairInclude });
+				if (pairCfgT) {
+					[pair] = await this.#enrichCfgTsWithRoles([pairCfgT]);
+				}
 			}
 		}
 
@@ -702,6 +697,8 @@ class CfgTRepository {
 	}
 
 	async findScopeWithNamesByCfgTId(cfgTId) {
+		if (typeof prisma.cfg_t_scope === 'undefined') return [];
+
 		const scopes = await prisma.cfg_t_scope.findMany({
 			where: { cfg_t_id: cfgTId },
 		});
