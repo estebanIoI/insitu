@@ -59,105 +59,95 @@ export const DevelopersButton: React.FC = () => {
 
       {/* Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-[90%] sm:max-w-[80%] md:max-w-fit lg:max-w-fit rounded-2xl shadow-2xl border border-gray-200/50 bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-md backdrop-brightness-50">
-          <DialogHeader>
-            <motion.img
-              src={LOGOS.full}
-              alt="Logo Institución Universitaria del Putumayo"
-              className="h-[70px] mx-auto mb-4 opacity-95"
-              whileHover={{ scale: 1.05, rotate: 1 }}
-              transition={{ type: "spring", stiffness: 200, damping: 12 }}
-            />
+        <DialogContent className="w-[92%] max-w-sm sm:max-w-md rounded-2xl shadow-2xl border border-gray-200/50 bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-md p-0 overflow-hidden">
+          <div className="overflow-y-auto max-h-[85dvh] px-5 py-5">
+            <DialogHeader className="mb-4">
+              <motion.img
+                src={LOGOS.full}
+                alt="Logo Institución Universitaria del Putumayo"
+                className="h-12 sm:h-16 mx-auto mb-3 opacity-95"
+                whileHover={{ scale: 1.05, rotate: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 12 }}
+              />
+              <DialogTitle className="text-center text-lg sm:text-xl font-bold text-gray-900 tracking-wide">
+                Equipo de Desarrollo
+              </DialogTitle>
+            </DialogHeader>
 
-            <DialogTitle className="text-center text-xl font-bold text-gray-900 tracking-wide mt-1">
-              Equipo de Desarrollo
-            </DialogTitle>
-          </DialogHeader>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.35 }}
-            className="space-y-6 text-center"
-          >
-            {/* Líder */}
             <motion.div
-              whileHover={{ y: -5, scale: 1.01 }}
-              className="p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-yellow-300/60 shadow-md hover:shadow-lg transition-all relative overflow-hidden"
+              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-4 text-center"
             >
-              <div className="absolute -top-2 -right-2 w-16 h-16 bg-yellow-400/10 rounded-full" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <FaCrown className="w-5 h-5 text-yellow-500" />
-                  <p className="uppercase text-xs tracking-widest text-yellow-600 font-semibold">
-                    Líder del Proyecto
+              {/* Líder */}
+              <motion.div
+                whileHover={{ y: -3, scale: 1.01 }}
+                className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-yellow-300/60 shadow-sm hover:shadow-md transition-all relative overflow-hidden"
+              >
+                <div className="absolute -top-2 -right-2 w-14 h-14 bg-yellow-400/10 rounded-full" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <FaCrown className="w-4 h-4 text-yellow-500" />
+                    <p className="uppercase text-[10px] tracking-widest text-yellow-600 font-semibold">
+                      Líder del Proyecto
+                    </p>
+                  </div>
+                  <p className="text-base font-semibold text-gray-800 mb-0.5">
+                    MSc. Jhon Henry Cuellar Portilla
                   </p>
+                  <p className="text-sm text-gray-500">Director de proyecto</p>
                 </div>
-                <p className="text-lg font-semibold text-gray-800 mb-1">
-                  MSc. Jhon Henry Cuellar Portilla
-                </p>
-                <p className="text-sm text-gray-600">
-                  Director de proyecto
-                </p>
+              </motion.div>
+
+              {/* Separador */}
+              <div className="relative flex items-center justify-center">
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-300/70 to-transparent" />
+                <FaCode className="w-5 h-5 text-gray-400 bg-white p-1 absolute" />
               </div>
-            </motion.div>
 
-            {/* Separador */}
-            <div className="relative flex items-center justify-center">
-              <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-300/70 to-transparent" />
-              <FaCode className="w-5 h-5 text-gray-400 bg-white p-1 absolute" />
-            </div>
+              {/* Desarrolladores */}
+              <div className="p-4 rounded-2xl bg-white/70 border border-gray-200/60 shadow-sm">
+                <p className="uppercase text-[10px] tracking-widest text-gray-500 mb-3">
+                  Desarrolladores
+                </p>
 
-            {/* Desarrolladores */}
-            <div className="p-5 rounded-2xl bg-white/70 border border-gray-200/60 shadow-md">
-              <p className="uppercase text-[11px] tracking-widest text-gray-500 mb-3">
-                Desarrolladores
-              </p>
-
-              <div className="space-y-3">
-                {shuffledDevelopers.map((dev, i) => (
-                  <motion.div
-                    key={i}
-                    whileHover={{ scale: 1.015 }}
-                    transition={{ type: "spring", stiffness: 120, damping: 15 }}
-                    className="flex flex-col items-center gap-2 p-2 rounded-lg hover:bg-white/50 group"
-                  >
-                    <div className="flex items-center gap-4">
+                <div className="space-y-2">
+                  {shuffledDevelopers.map((dev, i) => (
+                    <motion.a
+                      key={i}
+                      href={dev.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.015 }}
+                      transition={{ type: "spring", stiffness: 120, damping: 15 }}
+                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/70 active:bg-white/90 transition-colors"
+                    >
                       <img
                         src={dev.avatar}
                         alt={`${dev.firstName} ${dev.lastName}`}
-                        className="w-10 h-10 rounded-full border-2 border-gray-200 shadow-sm"
+                        className="w-10 h-10 rounded-full border-2 border-gray-200 shadow-sm shrink-0"
                       />
-                      <p className="font-medium text-gray-800 text-left">
-                        {dev.firstName}
-                        <br />
-                        {dev.lastName}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <FaGithub className="w-5 h-5 text-sky-600" />
-                      <a
-                        href={dev.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-gray-600 hover:text-sky-600"
-                      >
-                        GitHub
-                      </a>
-                    </div>
-                  </motion.div>
-                ))}
+                      <div className="text-left min-w-0">
+                        <p className="font-medium text-gray-800 text-sm leading-tight">
+                          {dev.firstName} {dev.lastName}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <FaGithub className="w-3 h-3 text-sky-600 shrink-0" />
+                          <span className="text-xs text-sky-600 truncate">GitHub</span>
+                        </div>
+                      </div>
+                    </motion.a>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Footer */}
-            <div className="mt-2">
-              <p className="text-xs text-gray-500 tracking-wider">
+              {/* Footer */}
+              <p className="text-[11px] text-gray-400 tracking-wide pb-1">
                 © {new Date().getFullYear()} Institución Universitaria del Putumayo
               </p>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
