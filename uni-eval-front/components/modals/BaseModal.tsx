@@ -124,7 +124,7 @@ export function BaseModal({
         {/* Header */}
         {(title || Icon) && (
           <DialogHeader className={cn(
-            "relative flex-shrink-0 border-b bg-white p-8 overflow-hidden",
+            "relative flex-shrink-0 border-b bg-white p-4 sm:p-8 overflow-hidden",
             config.borderColor,
             headerClassName
           )}>
@@ -145,7 +145,7 @@ export function BaseModal({
               )}
               <div className="flex-1">
                 {title && (
-                  <DialogTitle className="text-2xl font-black italic tracking-tight leading-none mb-2 text-slate-900 uppercase">
+                  <DialogTitle className="text-lg sm:text-2xl font-black italic tracking-tight leading-none mb-2 text-slate-900 uppercase">
                     {title}
                   </DialogTitle>
                 )}
@@ -161,7 +161,7 @@ export function BaseModal({
 
         {/* Content */}
         <div className={cn(
-          "flex-1 min-h-0 p-8 bg-slate-50/30 overflow-y-auto custom-scrollbar",
+          "flex-1 min-h-0 p-4 sm:p-8 bg-slate-50/30 overflow-y-auto custom-scrollbar",
           contentClassName
         )}>
           {children}
@@ -170,7 +170,7 @@ export function BaseModal({
         {/* Footer */}
         {footer && (
           <DialogFooter className={cn(
-            "flex-shrink-0 p-6 border-t bg-white",
+            "flex-shrink-0 p-3 sm:p-6 border-t bg-white",
             config.borderColor,
             footerClassName
           )}>

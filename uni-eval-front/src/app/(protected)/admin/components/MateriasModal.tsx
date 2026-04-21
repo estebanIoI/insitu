@@ -107,7 +107,7 @@ export default function MateriasModal({ docente, filtros, onClose }: MateriasMod
         variant="info"
         size="full"
         className="max-w-5xl"
-        contentClassName="p-10 bg-slate-50/30 custom-scrollbar"
+        contentClassName="p-4 sm:p-10 bg-slate-50/30 custom-scrollbar"
         footer={modalFooter}
       >
           <div className="flex items-center gap-2 mb-6">
@@ -120,7 +120,7 @@ export default function MateriasModal({ docente, filtros, onClose }: MateriasMod
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="p-8 bg-white rounded-[2.5rem] border-2 border-slate-100/50 space-y-6">
+                  <div key={i} className="p-4 sm:p-8 bg-white rounded-[2.5rem] border-2 border-slate-100/50 space-y-6">
                     <div className="flex justify-between">
                       <div className="space-y-3">
                         <Skeleton className="h-6 w-48" />
@@ -160,7 +160,7 @@ export default function MateriasModal({ docente, filtros, onClose }: MateriasMod
                   return (
                   <div
                     key={`${materia.codigo_materia}-${index}`}
-                    className="bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-2xl transition-all duration-500 hover:border-indigo-100 group relative overflow-hidden"
+                    className="bg-white border-2 border-slate-100 rounded-[2.5rem] p-4 sm:p-8 shadow-sm hover:shadow-2xl transition-all duration-500 hover:border-indigo-100 group relative overflow-hidden"
                   >
                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-125 transition-transform duration-700 pointer-events-none">
                       <BookOpen className="w-24 h-24 text-indigo-900" />

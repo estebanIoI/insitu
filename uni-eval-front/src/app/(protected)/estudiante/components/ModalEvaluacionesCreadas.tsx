@@ -117,11 +117,11 @@ export function ModalEvaluacionesCreadas({
                   const isCompleted = completedSteps.includes(index);
                   
                   return (
-                    <div 
+                    <div
                       key={index}
                       className={`flex items-center space-x-3 sm:space-x-4 p-3 rounded-lg transition-all duration-500 ${
-                        isActive 
-                          ? 'bg-blue-50 border-2 border-blue-200 scale-105 shadow-lg' 
+                        isActive
+                          ? 'bg-blue-50 border-2 border-blue-200 shadow-md ring-2 ring-blue-100'
                           : isCompleted
                           ? 'bg-green-50 border-2 border-green-200'
                           : 'bg-gray-50 border-2 border-transparent opacity-50'

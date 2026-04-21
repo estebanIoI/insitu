@@ -150,7 +150,7 @@ export default function CompletionModal({
 
     return (
       <div key={grupo.grupo} className="bg-white rounded-[2.5rem] border-2 border-slate-50 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 mb-8 group/card">
-        <div className="px-8 py-6 bg-slate-50/30 border-b border-slate-50 flex items-center justify-between group-hover/card:bg-indigo-50/20 transition-colors">
+        <div className="px-4 sm:px-8 py-4 sm:py-6 bg-slate-50/30 border-b border-slate-50 flex items-center justify-between group-hover/card:bg-indigo-50/20 transition-colors">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm group-hover/card:rotate-6 transition-transform">
               <Users className="w-6 h-6 text-indigo-600" />
@@ -171,7 +171,7 @@ export default function CompletionModal({
           </div>
         </div>
 
-        <div className="p-10 space-y-10">
+        <div className="p-4 sm:p-10 space-y-6 sm:space-y-10">
           <div className="relative h-3 w-full bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-50">
             <div
               className={`h-full rounded-full transition-all duration-1000 ease-out shadow-sm ${
@@ -181,7 +181,7 @@ export default function CompletionModal({
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10">
             <div className="space-y-6">
               <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-3">
@@ -253,7 +253,7 @@ export default function CompletionModal({
       variant="info"
       size="full"
       className="max-w-5xl"
-      contentClassName="p-8 bg-slate-50/30 custom-scrollbar"
+      contentClassName="p-4 sm:p-8 bg-slate-50/30 custom-scrollbar"
       footer={modalFooter}
     >
         <div className="flex flex-wrap gap-x-12 gap-y-3 mb-8 pb-6 border-b border-slate-100">

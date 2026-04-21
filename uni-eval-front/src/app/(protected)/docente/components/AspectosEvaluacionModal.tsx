@@ -83,7 +83,7 @@ export function AspectosEvaluacionModal({
   if (loading) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-1rem)] max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
@@ -103,7 +103,7 @@ export function AspectosEvaluacionModal({
   if (error) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-1rem)] max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
@@ -123,7 +123,7 @@ export function AspectosEvaluacionModal({
   if (!aspectos || aspectosEvaluacion.length === 0) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-1rem)] max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
@@ -142,7 +142,7 @@ export function AspectosEvaluacionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
@@ -258,7 +258,7 @@ export function AspectosEvaluacionModal({
           {/* Resumen estadístico */}
           <div className="pt-4 border-t space-y-4 bg-muted/50 p-4 rounded-lg">
             <h3 className="font-semibold text-sm">Resumen Estadístico</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-muted-foreground">Promedio General</p>
                 <p className="text-2xl font-bold">

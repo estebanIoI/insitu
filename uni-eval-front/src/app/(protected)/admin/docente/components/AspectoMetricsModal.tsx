@@ -173,18 +173,18 @@ export default function AspectoMetricsModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header con diseño premium */}
-        <div className="bg-white border-b border-slate-100 p-8 relative overflow-hidden">
+        <div className="bg-white border-b border-slate-100 p-4 sm:p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
             <BarChart2 className="w-48 h-48 text-slate-900" />
           </div>
-          <div className="flex items-start justify-between relative z-10">
-            <div className="flex items-center gap-6">
+          <div className="flex items-start justify-between relative z-10 gap-3">
+            <div className="flex items-center gap-3 sm:gap-6">
               <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 shadow-sm">
                 <Target className="w-8 h-8 text-blue-600" />
               </div>
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-3xl font-bold tracking-tight text-slate-900">Métricas de Desempeño</h2>
+                  <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900">Métricas de Desempeño</h2>
                   <Badge className="bg-blue-50 text-blue-600 border-blue-100 font-medium px-3 py-1 rounded-xl text-xs">
                     Vista Detallada
                   </Badge>
@@ -219,7 +219,7 @@ export default function AspectoMetricsModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-8 overflow-y-auto bg-slate-50/30 custom-scrollbar">
+        <div className="flex-1 p-4 sm:p-8 overflow-y-auto bg-slate-50/30 custom-scrollbar">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-24">
               <div className="relative">
@@ -333,14 +333,14 @@ export default function AspectoMetricsModal({
               {/* Charts & Details */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Radar Chart */}
-                <div className="p-8 pb-12 rounded-[2rem] bg-white border border-slate-100 shadow-sm flex flex-col items-center">
+                <div className="p-4 sm:p-8 pb-8 sm:pb-12 rounded-[2rem] bg-white border border-slate-100 shadow-sm flex flex-col items-center">
                   <div className="w-full flex justify-between items-center mb-10">
                     <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-blue-500"></span>
                       Equilibrio de Competencias
                     </h3>
                   </div>
-                  <div className="w-full h-[450px]">
+                  <div className="w-full h-[260px] sm:h-[450px]">
                     {radarData.length === 0 ? (
                       <div className="flex items-center justify-center h-full text-slate-400 text-sm">Sin datos de aspectos</div>
                     ) : (

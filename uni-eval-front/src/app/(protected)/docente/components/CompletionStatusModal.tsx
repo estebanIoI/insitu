@@ -34,7 +34,7 @@ export function CompletionStatusModal({
   if (!completion || !completion.grupos || completion.grupos.length === 0) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-1rem)] max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
@@ -53,7 +53,7 @@ export function CompletionStatusModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
