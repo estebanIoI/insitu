@@ -131,20 +131,21 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
         return;
       }
 
-      // Obtener el banco global de cfg_a y cfg_e (sin id)
-      const response = await configuracionEvaluacionService.getCfgACfgE();
-      if (response.success && response.data && Array.isArray(response.data)) {
-        // Consolidar todos los aspectos y escalas únicos de todas las configuraciones
-        // Usando clave compuesta: id-cfg_t_id para diferenciar por configuración
+      // Obtener solo cfg_a/cfg_e de la configuracion seleccionada
+      const response = await configuracionEvaluacionService.getCfgACfgE(cfgTId);
+      if (response.success && response.data) {
+        const configs = Array.isArray(response.data) ? response.data : [response.data];
+
+        // Consolidar aspectos y escalas unicos de la configuracion activa
+        // Usando clave compuesta: id-cfg_t_id para evitar duplicados
         const aspectosMap = new Map<string, AspectoEnriquecido>();
         const escalasMap = new Map<string, EscalaEnriquecida>();
 
-        response.data.forEach((config) => {
+        configs.forEach((config) => {
           const tipoEvalNombre = config.tipo_evaluacion?.tipo?.nombre || 'Sin tipo';
           const categoriaNombre = config.tipo_evaluacion?.categoria?.nombre || '';
           const tipoCompleto = categoriaNombre ? `${categoriaNombre} - ${tipoEvalNombre}` : tipoEvalNombre;
-          // Obtener el nombre del tipo de formulario desde cfg_t (tipo_form_id)
-          const tipoFormNombre = (config as any).tipo_form?.nombre || 'Sin nombre';
+          const tipoFormNombre = 'Configuracion seleccionada';
 
           // Agregar aspectos únicos (diferenciados por id + cfg_t_id)
           config.cfg_a
@@ -159,7 +160,7 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                   cfg_t_id: a.cfg_t_id,
                   tipo_evaluacion: tipoCompleto,
                   tipo_form_nombre: tipoFormNombre,
-                  es_configuracion_actual: a.cfg_t_id === cfgTId,
+                  es_configuracion_actual: true,
                 });
               }
             });
@@ -179,7 +180,7 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                   tipo_evaluacion: tipoCompleto,
                   tipo_form_nombre: tipoFormNombre,
                   puntaje: e.puntaje,
-                  es_configuracion_actual: e.cfg_t_id === cfgTId,
+                  es_configuracion_actual: true,
                 });
               }
             });
@@ -304,6 +305,35 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
               ? { ...e, selected: !e.selected }
               : e
           ),
+        };
+      })
+    );
+  };
+
+  const setAllEscalas = (itemId: string, selected: boolean) => {
+    setItems((prev) =>
+      prev.map((it) => {
+        if (it.id !== itemId) return it;
+        return {
+          ...it,
+          escalas: it.escalas.map((e) => ({ ...e, selected })),
+        };
+      })
+    );
+  };
+
+  const setAllAspectos = (itemId: string, selected: boolean) => {
+    setItems((prev) =>
+      prev.map((it) => {
+        if (it.id !== itemId) return it;
+        return {
+          ...it,
+          aspectos: it.aspectos.map((a) => ({
+            ...a,
+            selected,
+            es_cmt: it.es_pregunta_abierta ? true : selected ? a.es_cmt : false,
+            es_cmt_oblig: selected ? a.es_cmt_oblig : false,
+          })),
         };
       })
     );
@@ -492,7 +522,11 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
       title="Componer Aspectos y Escalas"
       description="Configura paso a paso cómo se evaluarán los aspectos"
       icon={Settings}
-      size="full"
+      size="lg"
+      className="max-h-[86vh] rounded-2xl"
+      headerClassName="p-4 sm:p-5"
+      contentClassName="p-4 sm:p-5 bg-white"
+      footerClassName="p-3 sm:p-4"
       closeOnOverlayClick={!isLoading && !isLoadingConfig}
       showCloseButton={!isLoading && !isLoadingConfig}
       footer={
@@ -502,7 +536,7 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
             variant="outline"
             onClick={onClose}
             disabled={isLoading || isLoadingConfig}
-            className="flex-1 h-12 rounded-2xl border-2 border-slate-200 text-sm font-semibold hover:bg-slate-50 transition-all"
+            className="flex-1 h-10 rounded-xl border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-all"
           >
             Cancelar
           </Button>
@@ -510,7 +544,7 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
             type="button"
             onClick={handleSubmit}
             disabled={isLoading || isLoadingConfig || !allItemsCompleted()}
-            className="flex-1 h-12 rounded-2xl bg-slate-900 text-sm font-semibold text-white shadow-xl shadow-slate-200 hover:bg-slate-800 active:scale-95 transition-all"
+            className="flex-1 h-10 rounded-xl bg-slate-900 text-sm font-medium text-white hover:bg-slate-800 active:scale-95 transition-all"
           >
             {isLoading ? (
               <>
@@ -536,10 +570,10 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
           <div className="space-y-6">
             {/* Formulario inicial de selección de tipos */}
             {items.length === 0 && (
-              <Card className="border-2">
-                <CardContent className="p-8 space-y-6">
-                  <div className="text-center space-y-2">
-                    <h3 className="text-xl font-bold">🎯 Selecciona los tipos de configuración</h3>
+              <Card className="border border-slate-200 rounded-xl shadow-none">
+                <CardContent className="p-5 space-y-4">
+                  <div className="space-y-1">
+                    <h3 className="text-base font-semibold text-slate-900">Selecciona los tipos de configuración</h3>
                     <p className="text-sm text-muted-foreground">
                       Puedes seleccionar uno o ambos tipos. Se crearán bloques separados para cada uno.
                     </p>
@@ -548,10 +582,10 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                   <div className="space-y-4">
                     {/* Opción 1: Con escalas */}
                     <label
-                      className={`flex items-start gap-4 rounded-lg border-2 p-4 cursor-pointer transition-all hover:shadow-md ${
+                      className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer transition-all ${
                         tiposSeleccionados.has('conEscalas')
-                          ? 'border-primary bg-primary/10 shadow-sm'
-                          : 'border-muted hover:border-primary/50 hover:bg-muted/50'
+                          ? 'border-primary/50 bg-primary/5'
+                          : 'border-slate-200 hover:border-primary/40 hover:bg-slate-50'
                       }`}
                     >
                       <Checkbox
@@ -560,10 +594,10 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                         className="mt-1"
                       />
                       <div className="flex-1">
-                        <div className="font-semibold flex items-center gap-2">
+                        <div className="font-medium flex items-center gap-2 text-sm">
                           📊 Con escalas numéricas
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           Los evaluadores calificarán usando una escala numérica y podrán dejar comentarios opcionales
                         </p>
                       </div>
@@ -571,10 +605,10 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
 
                     {/* Opción 2: Sin escalas */}
                     <label
-                      className={`flex items-start gap-4 rounded-lg border-2 p-4 cursor-pointer transition-all hover:shadow-md ${
+                      className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer transition-all ${
                         tiposSeleccionados.has('sinEscalas')
-                          ? 'border-primary bg-primary/10 shadow-sm'
-                          : 'border-muted hover:border-primary/50 hover:bg-muted/50'
+                          ? 'border-primary/50 bg-primary/5'
+                          : 'border-slate-200 hover:border-primary/40 hover:bg-slate-50'
                       }`}
                     >
                       <Checkbox
@@ -583,10 +617,10 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                         className="mt-1"
                       />
                       <div className="flex-1">
-                        <div className="font-semibold flex items-center gap-2">
+                        <div className="font-medium flex items-center gap-2 text-sm">
                           📝 Sin escalas (comentarios)
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           Los evaluadores escribirán comentarios obligatorios sin asignar una puntuación numérica
                         </p>
                       </div>
@@ -604,7 +638,7 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                   {/* Botón Continuar */}
                   <Button
                     onClick={() => continuarConTiposSeleccionados()}
-                    className="w-full gap-2"
+                    className="w-full gap-2 h-10 rounded-xl"
                   >
                     <CheckCircle2 className="h-4 w-4" />
                     Continuar con {tiposSeleccionados.size > 0 ? (tiposSeleccionados.size === 1 ? 'este tipo' : 'estos tipos') : 'un tipo'}
@@ -616,6 +650,15 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
             {items.map((item, itemIndex) => {
               const maxStep = getMaxStep(item);
               const progress = (item.currentStep / maxStep) * 100;
+              const selectedEscalas = escalasConfiguradas.filter((e) =>
+                item.escalas.some((es) => es.id === e.id && es.cfg_t_id === e.cfg_t_id && es.selected)
+              );
+              const selectedAspectos = item.aspectos.filter((a) => a.selected);
+              const selectedAspectoNombres = selectedAspectos
+                .map((a) => aspectosById.get(`${a.id}-${a.cfg_t_id}`)?.nombre)
+                .filter(Boolean) as string[];
+              const withComments = selectedAspectos.filter((a) => a.es_cmt).length;
+              const withRequiredComments = selectedAspectos.filter((a) => a.es_cmt_oblig).length;
 
               const STEPS: Record<number, {title: string; description: string; icon: string}> = {
                 1: item.tipoConfiguracion === null
@@ -629,47 +672,68 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
               };
 
               return (
-                <Card key={item.id} className="border-2 overflow-hidden">
+                <Card key={item.id} className="border border-slate-200 shadow-none overflow-hidden rounded-xl">
                   {/* Header del wizard */}
-                  <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-b-2 p-4">
+                  <div className="bg-slate-50 border-b border-slate-200 p-3 sm:p-4">
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-xs">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <Badge variant="outline" className="text-xs rounded-full">
                             Bloque #{itemIndex + 1}
                           </Badge>
                           {item.tipoConfiguracion && (
-                            <span className="text-sm font-semibold text-muted-foreground">
-                              {item.tipoConfiguracion === 'sinEscalas' ? "📝 Sin escalas" : "📊 Con escalas"}
-                            </span>
+                            <Badge variant="secondary" className="text-xs rounded-full">
+                              {item.tipoConfiguracion === 'sinEscalas' ? "Sin escalas" : "Con escalas"}
+                            </Badge>
                           )}
                         </div>
-                        <h3 className="text-lg font-bold">
+                        <h3 className="text-base sm:text-lg font-semibold text-slate-900">
                           {STEPS[item.currentStep].icon} {STEPS[item.currentStep].title}
                         </h3>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-sm text-slate-500 mt-1">
                           {STEPS[item.currentStep].description}
                         </p>
                       </div>
                     </div>
 
+                    <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                      {Array.from({ length: maxStep }, (_, idx) => idx + 1).map((step) => {
+                        const isDone = step < item.currentStep;
+                        const isCurrent = step === item.currentStep;
+                        return (
+                          <span
+                            key={`${item.id}-step-${step}`}
+                            className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[11px] font-medium transition-all ${
+                              isDone
+                                ? "bg-emerald-100 text-emerald-700"
+                                : isCurrent
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-slate-200 text-slate-500"
+                            }`}
+                          >
+                            {isDone ? "✓" : step}
+                          </span>
+                        );
+                      })}
+                    </div>
+
                     {/* Barra de progreso */}
                     <div className="flex items-center gap-2">
                       <div className="flex-1">
-                        <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                        <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                           <div 
                             className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-500"
                             style={{ width: `${progress}%` }}
                           />
                         </div>
                       </div>
-                      <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                      <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">
                         Paso {item.currentStep} de {maxStep}
                       </span>
                     </div>
                   </div>
 
-                  <CardContent className="p-6 space-y-6">
+                  <CardContent className="p-4 space-y-4">
                     {/* PASO 1: Seleccionar tipo de configuración */}
                     {item.currentStep === 1 && (
                       <div className="space-y-4">
@@ -684,10 +748,30 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                     {/* PASO 2: Escalas (solo para con escalas) */}
                     {item.currentStep === 2 && item.tipoConfiguracion === 'conEscalas' && (
                       <div className="space-y-4">
+                        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                              <p className="text-sm font-semibold">Selecciona las respuestas (escalas) reutilizables</p>
+                              <p className="text-xs text-muted-foreground">
+                                Las escalas elegidas aqui se aplicaran a todos los aspectos que selecciones en el siguiente paso.
+                              </p>
+                            </div>
+                            <Badge variant="secondary" className="w-fit">
+                              {item.escalas.filter((e) => e.selected).length} seleccionada{item.escalas.filter((e) => e.selected).length !== 1 ? 's' : ''}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button type="button" variant="outline" size="sm" onClick={() => setAllEscalas(item.id, true)}>
+                              Seleccionar todas
+                            </Button>
+                            <Button type="button" variant="outline" size="sm" onClick={() => setAllEscalas(item.id, false)}>
+                              Limpiar seleccion
+                            </Button>
+                          </div>
+                        </div>
+
                         {Object.entries(escalasPorTipo).map(([key, escalasGrupo]) => {
                           const [tipoEval, cfgPart] = key.split('|');
-                          const cfgId = cfgPart.replace('CFG_', '');
-                          const tipoFormNombre = escalasGrupo[0]?.tipo_form_nombre || 'Tipo';
                           const esActual = escalasGrupo[0]?.es_configuracion_actual;
                           return (
                             <Collapsible
@@ -706,9 +790,6 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                                       <div className="flex flex-col items-start gap-1">
                                         <div className="flex items-center gap-2">
                                           <span className="font-semibold text-sm">{tipoEval}</span>
-                                          <Badge variant="secondary" className="text-xs">{tipoFormNombre}</Badge>
-                                          <Badge variant="outline" className="text-xs font-mono">ID: {cfgId}</Badge>
-                                          {esActual && <Badge variant="default" className="text-xs">Actual</Badge>}
                                         </div>
                                         <span className="text-xs text-muted-foreground">
                                           {escalasGrupo.length} escala{escalasGrupo.length !== 1 ? 's' : ''}
@@ -774,9 +855,25 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                     {/* PASO 2: Aspectos (solo para sin escalas) */}
                     {item.currentStep === 2 && item.tipoConfiguracion === 'sinEscalas' && (
                       <div className="space-y-4">
+                        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm font-semibold">Selecciona las preguntas (aspectos) para comentarios</p>
+                            <Badge variant="secondary" className="w-fit">
+                              {item.aspectos.filter((a) => a.selected).length} seleccionada{item.aspectos.filter((a) => a.selected).length !== 1 ? 's' : ''}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button type="button" variant="outline" size="sm" onClick={() => setAllAspectos(item.id, true)}>
+                              Seleccionar todas
+                            </Button>
+                            <Button type="button" variant="outline" size="sm" onClick={() => setAllAspectos(item.id, false)}>
+                              Limpiar seleccion
+                            </Button>
+                          </div>
+                        </div>
+
                         {Object.entries(aspectosPorTipo).map(([key, aspectosGrupo]) => {
                           const [tipoEval, cfgPart] = key.split('|');
-                          const cfgId = cfgPart.replace('CFG_', '');
                           const esActual = aspectosGrupo[0]?.es_configuracion_actual;
                           const aspectosDelItem = item.aspectos.filter(a => aspectosGrupo.some(ag => ag.id === a.id && ag.cfg_t_id === a.cfg_t_id));
                           
@@ -797,8 +894,6 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                                       <div className="flex flex-col items-start gap-1">
                                         <div className="flex items-center gap-2">
                                           <span className="font-semibold text-sm">{tipoEval}</span>
-                                          <Badge variant="outline" className="text-xs font-mono">ID: {cfgId}</Badge>
-                                          {esActual && <Badge variant="default" className="text-xs">Actual</Badge>}
                                         </div>
                                         <span className="text-xs text-muted-foreground">
                                           {aspectosGrupo.length} aspecto{aspectosGrupo.length !== 1 ? 's' : ''}
@@ -818,7 +913,7 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
                                   <div className="p-4 pt-2 bg-muted/20">
-                                    <div className="rounded-lg border-2 border-muted bg-background overflow-hidden">
+                                    <div className="rounded-lg border-2 border-muted bg-background overflow-x-auto">
                                       <Table>
                                         <TableHeader>
                                           <TableRow className="bg-primary/10">
@@ -891,10 +986,35 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                     {/* PASO 3: Aspectos */}
                     {item.currentStep === 3 && item.tipoConfiguracion === 'conEscalas' && (
                       <div className="space-y-4">
+                        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                              <p className="text-sm font-semibold">Selecciona los aspectos (preguntas)</p>
+                              <p className="text-xs text-muted-foreground">Cada aspecto seleccionado usara exactamente las escalas elegidas en el paso anterior.</p>
+                            </div>
+                            <Badge variant="secondary" className="w-fit">
+                              {item.aspectos.filter((a) => a.selected).length} seleccionada{item.aspectos.filter((a) => a.selected).length !== 1 ? 's' : ''}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button type="button" variant="outline" size="sm" onClick={() => setAllAspectos(item.id, true)}>
+                              Seleccionar todas
+                            </Button>
+                            <Button type="button" variant="outline" size="sm" onClick={() => setAllAspectos(item.id, false)}>
+                              Limpiar seleccion
+                            </Button>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedEscalas.map((escala) => (
+                                <Badge key={`${escala.id}-${escala.cfg_t_id}`} variant="outline" className="text-xs">
+                                  {escala.sigla} - {escala.nombre}
+                                </Badge>
+                              ))}
+                          </div>
+                        </div>
+
                         {Object.entries(aspectosPorTipo).map(([key, aspectosGrupo]) => {
                           const [tipoEval, cfgPart] = key.split('|');
-                          const cfgId = cfgPart.replace('CFG_', '');
-                          const tipoFormNombre = aspectosGrupo[0]?.tipo_form_nombre || 'Tipo';
                           const esActual = aspectosGrupo[0]?.es_configuracion_actual;
                           const aspectosDelItem = item.aspectos.filter(a => aspectosGrupo.some(ag => ag.id === a.id && ag.cfg_t_id === a.cfg_t_id));
                           
@@ -915,9 +1035,6 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                                       <div className="flex flex-col items-start gap-1">
                                         <div className="flex items-center gap-2">
                                           <span className="font-semibold text-sm">{tipoEval}</span>
-                                          <Badge variant="secondary" className="text-xs">{tipoFormNombre}</Badge>
-                                          <Badge variant="outline" className="text-xs font-mono">ID: {cfgId}</Badge>
-                                          {esActual && <Badge variant="default" className="text-xs">Actual</Badge>}
                                         </div>
                                         <span className="text-xs text-muted-foreground">
                                           {aspectosGrupo.length} aspecto{aspectosGrupo.length !== 1 ? 's' : ''}
@@ -937,7 +1054,7 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
                                   <div className="p-4 pt-2 bg-muted/20">
-                                    <div className="rounded-lg border-2 border-muted bg-background overflow-hidden">
+                                    <div className="rounded-lg border-2 border-muted bg-background overflow-x-auto">
                                       <Table>
                                         <TableHeader>
                                           <TableRow className="bg-primary/10">
@@ -1060,40 +1177,59 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                     {/* PASO 4: Resumen (solo para con escalas) */}
                     {item.currentStep === 4 && item.tipoConfiguracion === 'conEscalas' && (
                       <div className="space-y-4">
-                        <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-4 rounded-lg space-y-3">
-                          <h4 className="font-semibold text-green-900 dark:text-green-100">✅ Resumen de configuración</h4>
-                          
-                          <div className="space-y-2 text-sm">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="default" className="text-xs">
-                                {item.escalas.filter(e => e.selected).length} escala{item.escalas.filter(e => e.selected).length !== 1 ? 's' : ''}
-                              </Badge>
-                              <span className="text-muted-foreground">
-                                {escalasConfiguradas
-                                  .filter(e => item.escalas.some(es => es.id === e.id && es.cfg_t_id === e.cfg_t_id && es.selected))
-                                  .map(e => e.sigla)
-                                  .join(", ")}
-                              </span>
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                              <Badge variant="default" className="text-xs">
-                                {item.aspectos.filter(a => a.selected).length} aspecto{item.aspectos.filter(a => a.selected).length !== 1 ? 's' : ''}
-                              </Badge>
-                            </div>
+                        <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+                          <h4 className="font-semibold text-emerald-900">Regla final que se guardara</h4>
+                          <p className="text-sm text-slate-600">
+                            Cada aspecto seleccionado se evaluara con las respuestas (escalas) elegidas en este bloque.
+                          </p>
 
-                            <div className="flex items-center gap-2">
-                              {item.aspectos.some(a => a.es_cmt) ? (
-                                <>
-                                  <Badge variant="secondary" className="text-xs">Comentarios activos</Badge>
-                                  {item.aspectos.some(a => a.es_cmt_oblig) && (
-                                    <span className="text-muted-foreground text-xs">Obligatorios</span>
-                                  )}
-                                </>
+                          <div className="grid gap-2 sm:grid-cols-3">
+                            <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+                              <p className="text-xs uppercase tracking-wide text-slate-500">Respuestas</p>
+                              <p className="text-xl font-semibold text-slate-900">{selectedEscalas.length}</p>
+                            </div>
+                            <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+                              <p className="text-xs uppercase tracking-wide text-slate-500">Preguntas</p>
+                              <p className="text-xl font-semibold text-slate-900">{selectedAspectos.length}</p>
+                            </div>
+                            <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+                              <p className="text-xs uppercase tracking-wide text-slate-500">Comentarios obligatorios</p>
+                              <p className="text-xl font-semibold text-slate-900">{withRequiredComments}</p>
+                            </div>
+                          </div>
+
+                          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 space-y-2">
+                            <p className="text-xs font-semibold text-slate-600">Respuestas que se aplicaran:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedEscalas.length > 0 ? (
+                                selectedEscalas.map((escala) => (
+                                  <Badge key={`${escala.id}-${escala.cfg_t_id}`} variant="outline" className="text-xs">
+                                    {escala.sigla} - {escala.nombre}
+                                  </Badge>
+                                ))
                               ) : (
-                                <Badge variant="outline" className="text-xs">Sin comentarios</Badge>
+                                <span className="text-xs text-slate-500">No hay respuestas seleccionadas.</span>
                               )}
                             </div>
+                          </div>
+
+                          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 space-y-2">
+                            <p className="text-xs font-semibold text-slate-600">Preguntas que usaran esas respuestas:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedAspectoNombres.length > 0 ? (
+                                selectedAspectoNombres.map((nombre, idx) => (
+                                  <Badge key={`${item.id}-asp-${idx}`} variant="secondary" className="text-xs">
+                                    {nombre}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <span className="text-xs text-slate-500">No hay preguntas seleccionadas.</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="text-xs text-slate-600">
+                            Comentarios activos: <span className="font-semibold text-slate-900">{withComments}</span> de <span className="font-semibold text-slate-900">{selectedAspectos.length}</span> preguntas.
                           </div>
                         </div>
                       </div>
@@ -1112,7 +1248,7 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                   </CardContent>
 
                   {/* Footer con botones de navegación */}
-                  <div className="border-t-2 bg-muted/30 p-4 flex items-center justify-between gap-3">
+                  <div className="border-t bg-slate-50 p-3 flex flex-wrap items-center justify-between gap-2">
                     {/* Mostrar Atrás solo si no está en Step 1 */}
                     {!(item.currentStep === 1 && item.tipoConfiguracion === null) && (
                       <Button
@@ -1120,7 +1256,7 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                         variant="outline"
                         onClick={() => goToPrev(item.id)}
                         disabled={item.currentStep === 1}
-                        className="gap-2"
+                        className="gap-2 h-9 rounded-lg"
                       >
                         <ChevronLeft className="h-4 w-4" />
                         Atrás
@@ -1128,11 +1264,11 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                     )}
 
                     {item.currentStep === maxStep ? (
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-[11px] text-slate-600 order-3 w-full sm:order-none sm:w-auto">
                         ✅ Configuración completada
                       </div>
                     ) : (
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-[11px] text-slate-600 order-3 w-full sm:order-none sm:w-auto">
                         Paso {item.currentStep} de {maxStep}
                       </div>
                     )}
@@ -1142,7 +1278,7 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
                       <Button
                         type="button"
                         onClick={() => goToNext(item.id)}
-                        className="gap-2"
+                        className="gap-2 h-9 rounded-lg"
                       >
                         Siguiente
                         <ChevronRightIcon className="h-4 w-4" />
