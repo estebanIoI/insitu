@@ -13,6 +13,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Temporary: easier to debug production errors (can be reverted later)
+  swcMinify: false,
+  productionBrowserSourceMaps: true,
   images: {
     unoptimized: true,
     domains: ['clownfish-app-hnngr.ondigitalocean.app', 'virtual.itp.edu.co', 'itp.edu.co'],
