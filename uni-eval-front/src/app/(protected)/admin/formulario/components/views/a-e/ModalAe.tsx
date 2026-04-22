@@ -147,7 +147,7 @@ export function ModalAe({ isOpen, onClose, onSuccess, cfgTId, aspectos, escalas 
           const tipoCompleto = categoriaNombre ? `${categoriaNombre} - ${tipoEvalNombre}` : tipoEvalNombre;
           const tipoFormNombre = 'Configuracion seleccionada';
 
-          // Agregar aspectos únicos (diferenciados por id + cfg_t_id)
+          // Agregar aspectoss únicos (diferenciados por id + cfg_t_id)
           config.cfg_a
             .filter((a) => a.es_activo)
             .forEach((a) => {
