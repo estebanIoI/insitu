@@ -28,8 +28,9 @@ import {
 } from 'lucide-react';
 import { MateriaCard } from '../components/MateriaCard';
 import { DocenteKPIIndicators } from '../components/DocenteKPIIndicators';
-import { PendientesPorMateriaChart } from '../components/PendientesPorMateriaChart';
-import { AspectosEvaluacionChart } from '../components/AspectosEvaluacionChart';
+import dynamic from 'next/dynamic';
+const PendientesPorMateriaChart = dynamic(() => import('../components/PendientesPorMateriaChart').then(m => ({ default: m.PendientesPorMateriaChart })), { ssr: false });
+const AspectosEvaluacionChart = dynamic(() => import('../components/AspectosEvaluacionChart').then(m => ({ default: m.AspectosEvaluacionChart })), { ssr: false });
 import Filtro from '../components/Filter';
 
 export default function DocenteDashboardPage() {

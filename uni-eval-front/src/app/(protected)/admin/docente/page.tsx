@@ -21,7 +21,8 @@ import { memo } from "react"
 const FiltersMemo = memo(Filtros)
 import Filtros from "../components/filters"
 import DocentesList from "./components/DocentesList"
-import DocentesCumplimientoBarChart from "./components/DocentesCumplimientoBarChart"
+import dynamic from "next/dynamic"
+const DocentesCumplimientoBarChart = dynamic(() => import("./components/DocentesCumplimientoBarChart"), { ssr: false })
 import { metricService } from "@/src/api/services/metric/metric.service"
 import type { DocenteGeneralMetrics } from "@/src/api/services/metric/metric.service"
 import type { FiltrosState } from "../types"

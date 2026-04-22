@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { BarChart3, CheckCircle2, Clock, ChevronDown, ChevronUp } from "lucide-react";
-import { ChartSection } from "./components/ChartSection";
+import dynamic from "next/dynamic";
+const ChartSection = dynamic(() => import("./components/ChartSection").then(m => ({ default: m.ChartSection })), { ssr: false });
 import { ProgramasSummaryCards } from "./components/ProgramasSummaryCards";
 import { DialogDocentes } from "./components/DialogDocentes";
 import {

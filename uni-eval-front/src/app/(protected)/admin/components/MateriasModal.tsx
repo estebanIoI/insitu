@@ -12,8 +12,9 @@ import {
   TrendingUp
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
-import AspectoMetricsModal from "../docente/components/AspectoMetricsModal"
-import CompletionModal from "./CompletionModal"
+import dynamic from "next/dynamic"
+const AspectoMetricsModal = dynamic(() => import("../docente/components/AspectoMetricsModal"), { ssr: false })
+const CompletionModal = dynamic(() => import("./CompletionModal"), { ssr: false })
 import { metricService } from "@/src/api/services/metric/metric.service"
 import { configuracionEvaluacionService } from "@/src/api/services/app/cfg-t.service"
 import type { DocenteGeneralMetrics, DocenteMateriasMetrics, MateriaMetric } from "@/src/api/services/metric/metric.service"

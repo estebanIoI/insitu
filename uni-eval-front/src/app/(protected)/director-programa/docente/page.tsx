@@ -7,7 +7,8 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/useAuth"
 import Filtros from "../components/filters"
 import DocentesList from "../../admin/docente/components/DocentesList"
-import DocentesCumplimientoBarChart from "../../admin/docente/components/DocentesCumplimientoBarChart"
+import dynamic from "next/dynamic"
+const DocentesCumplimientoBarChart = dynamic(() => import("../../admin/docente/components/DocentesCumplimientoBarChart"), { ssr: false })
 import { metricService } from "@/src/api/services/metric/metric.service"
 import type { DocenteGeneralMetrics } from "@/src/api/services/metric/metric.service"
 

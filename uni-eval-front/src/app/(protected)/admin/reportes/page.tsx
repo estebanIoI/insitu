@@ -34,9 +34,10 @@ import type {
   MetricFilters,
 } from "@/src/api/services/metric/metric.service";
 import type { FiltrosState } from "../types";
-import ReportePorPrograma from "./components/ReportePorPrograma";
-import ReporteConsolidado from "./components/ReporteConsolidado";
-import ReporteInstitucional from "./components/ReporteInstitucional";
+import dynamic from "next/dynamic";
+const ReportePorPrograma = dynamic(() => import("./components/ReportePorPrograma"), { ssr: false });
+const ReporteConsolidado = dynamic(() => import("./components/ReporteConsolidado"), { ssr: false });
+const ReporteInstitucional = dynamic(() => import("./components/ReporteInstitucional"), { ssr: false });
 
 const FiltersMemo = memo(Filtros);
 
