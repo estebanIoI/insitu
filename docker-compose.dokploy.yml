@@ -76,7 +76,7 @@ services:
           -sN 2>/dev/null || echo 0)
         if [ "$$TABLES" = "0" ] || [ -z "$$TABLES" ]; then
           echo '📥 BD vacía — importando esquema...'
-          mysql -h mysql -uroot < /init/app.sql && echo '✅ Esquema importado.'
+          mysql -h mysql -uroot --default-character-set=utf8mb4 < /init/app.sql && echo '✅ Esquema importado.'
         else
           echo "✅ BD ya tiene $$TABLES tablas — omitiendo init."
         fi
